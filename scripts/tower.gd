@@ -7,6 +7,44 @@ const TOWER_TEXTURES := {
 	"tesla": preload("res://assets/images/tesla_tower.png"),
 }
 
+const SKIN_TEXTURES := {
+	"archer_emas": preload("res://assets/images/skin_archer_emas.png"),
+	"archer_elven": preload("res://assets/images/skin_archer_elven.png"),
+	"archer_steampunk": preload("res://assets/images/skin_archer_steampunk.png"),
+	"archer_es": preload("res://assets/images/skin_archer_es.png"),
+	"ice_emas": preload("res://assets/images/skin_ice_emas.png"),
+	"ice_elven": preload("res://assets/images/skin_ice_elven.png"),
+	"ice_steampunk": preload("res://assets/images/skin_ice_steampunk.png"),
+	"ice_api": preload("res://assets/images/skin_ice_api.png"),
+	"cannon_emas": preload("res://assets/images/skin_cannon_emas.png"),
+	"cannon_elven": preload("res://assets/images/skin_cannon_elven.png"),
+	"cannon_steampunk": preload("res://assets/images/skin_cannon_steampunk.png"),
+	"cannon_api": preload("res://assets/images/skin_cannon_api.png"),
+	"tesla_emas": preload("res://assets/images/skin_tesla_emas.png"),
+	"tesla_elven": preload("res://assets/images/skin_tesla_elven.png"),
+	"tesla_steampunk": preload("res://assets/images/skin_tesla_steampunk.png"),
+	"tesla_api": preload("res://assets/images/skin_tesla_api.png"),
+}
+
+const SKIN_NAMES := {
+	"archer_emas": "Skin Emas",
+	"archer_elven": "Skin Elven",
+	"archer_steampunk": "Skin Steampunk",
+	"archer_es": "Skin Es",
+	"ice_emas": "Skin Emas",
+	"ice_elven": "Skin Elven",
+	"ice_steampunk": "Skin Steampunk",
+	"ice_api": "Skin Api",
+	"cannon_emas": "Skin Emas",
+	"cannon_elven": "Skin Elven",
+	"cannon_steampunk": "Skin Steampunk",
+	"cannon_api": "Skin Api",
+	"tesla_emas": "Skin Emas",
+	"tesla_elven": "Skin Elven",
+	"tesla_steampunk": "Skin Steampunk",
+	"tesla_api": "Skin Api",
+}
+
 const TOWER_SOUNDS := {
 	"archer": preload("res://assets/sounds/shoot_archer.wav"),
 	"ice": preload("res://assets/sounds/shoot_ice.wav"),
@@ -87,6 +125,7 @@ const TOWER_CONFIGS := {
 
 @export var projectile_scene: PackedScene
 @export var tower_type: String = "archer"
+@export var skin_id: String = ""
 @export var tower_display_name: String = "Archer Tower"
 @export var attack_damage: float = 18.0
 @export var attack_range: float = 185.0
@@ -138,12 +177,16 @@ func _ready() -> void:
 	queue_redraw()
 
 
-func configure_tower(type_id: String) -> void:
+func configure_tower(type_id: String, p_skin_id: String = "") -> void:
 	if not TOWER_CONFIGS.has(type_id):
 		return
 	var cfg: Dictionary = TOWER_CONFIGS[type_id]
 	tower_type = type_id
-	tower_display_name = cfg["name"]
+	skin_id = p_skin_id
+	if skin_id != "" and SKIN_NAMES.has(skin_id):
+		tower_display_name = "%s (%s)" % [cfg["name"], SKIN_NAMES[skin_id]]
+	else:
+		tower_display_name = cfg["name"]
 	build_cost = cfg["cost"]
 	total_invested = build_cost
 	attack_damage = cfg["damage"]
@@ -219,7 +262,8 @@ func _shoot(target: Node2D) -> void:
 			slow_factor,
 			slow_duration,
 			splash_radius,
-			chain_count
+			chain_count,
+			skin_id
 		)
 
 	_play_shoot_pulse()
@@ -282,10 +326,16 @@ func set_selected(selected: bool) -> void:
 
 
 func _apply_tower_visual() -> void:
-	if base_sprite != null and TOWER_TEXTURES.has(tower_type):
-		base_sprite.texture = TOWER_TEXTURES[tower_type]
+	if base_sprite != null:
+		base_sprite.texture = get_texture_for(tower_type, skin_id)
 	if shoot_sound != null and TOWER_SOUNDS.has(tower_type):
 		shoot_sound.stream = TOWER_SOUNDS[tower_type]
+
+
+static func get_texture_for(type_id: String, p_skin_id: String = "") -> Texture2D:
+	if p_skin_id != "" and SKIN_TEXTURES.has(p_skin_id):
+		return SKIN_TEXTURES[p_skin_id]
+	return TOWER_TEXTURES.get(type_id, null)
 
 
 func _apply_range_radius() -> void:

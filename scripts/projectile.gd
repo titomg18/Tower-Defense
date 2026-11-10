@@ -6,6 +6,7 @@ extends Area2D
 @export var show_placeholder: bool = true
 
 var projectile_type: String = "arrow"
+var skin_id: String = ""
 var slow_factor: float = 1.0
 var slow_duration: float = 0.0
 var splash_radius: float = 0.0
@@ -34,7 +35,8 @@ func setup(
 	p_slow_factor: float = 1.0,
 	p_slow_duration: float = 0.0,
 	p_splash_radius: float = 0.0,
-	p_chain_count: int = 0
+	p_chain_count: int = 0,
+	p_skin_id: String = ""
 ) -> void:
 	target = target_node
 	damage = projectile_damage
@@ -44,6 +46,7 @@ func setup(
 	slow_duration = p_slow_duration
 	splash_radius = p_splash_radius
 	chain_count = p_chain_count
+	skin_id = p_skin_id
 
 	if initial_direction.length_squared() > 0.0001:
 		_direction = initial_direction.normalized()
@@ -141,20 +144,89 @@ func _draw() -> void:
 
 	match projectile_type:
 		"ice":
+			var fill_col := Color(0.45, 0.9, 1.0)
+			var edge_col := Color.WHITE
+			if skin_id.ends_with("_emas"):
+				fill_col = Color(1.0, 0.86, 0.25)
+				edge_col = Color(1.0, 0.96, 0.72)
+			elif skin_id.ends_with("_elven"):
+				fill_col = Color(0.38, 0.92, 0.48)
+				edge_col = Color(0.84, 1.0, 0.78)
+			elif skin_id.ends_with("_steampunk"):
+				fill_col = Color(0.42, 0.78, 1.0)
+				edge_col = Color(0.92, 0.72, 0.35)
+			elif skin_id.ends_with("_api"):
+				fill_col = Color(1.0, 0.45, 0.12)
+				edge_col = Color(1.0, 0.88, 0.35)
 			var pts := PackedVector2Array([Vector2(9, 0), Vector2(0, 5), Vector2(-9, 0), Vector2(0, -5)])
-			draw_colored_polygon(pts, Color(0.45, 0.9, 1.0))
-			draw_polyline(PackedVector2Array([Vector2(9, 0), Vector2(0, 5), Vector2(-9, 0), Vector2(0, -5), Vector2(9, 0)]), Color.WHITE, 1.5)
+			draw_colored_polygon(pts, fill_col)
+			draw_polyline(PackedVector2Array([Vector2(9, 0), Vector2(0, 5), Vector2(-9, 0), Vector2(0, -5), Vector2(9, 0)]), edge_col, 1.5)
 		"cannon":
-			draw_circle(Vector2.ZERO, 7.0, Color(0.18, 0.2, 0.24))
-			draw_arc(Vector2.ZERO, 7.0, 0.0, TAU, 16, Color(0.5, 0.55, 0.6), 1.5)
-			draw_circle(Vector2(-2, -2), 2.0, Color(0.7, 0.75, 0.8))
+			if skin_id.ends_with("_api"):
+				draw_circle(Vector2.ZERO, 8.0, Color(0.95, 0.36, 0.06, 0.85))
+				draw_circle(Vector2.ZERO, 5.5, Color(1.0, 0.78, 0.18))
+				draw_arc(Vector2.ZERO, 8.0, 0.0, TAU, 16, Color(1.0, 0.9, 0.4), 1.5)
+			elif skin_id.ends_with("_emas"):
+				draw_circle(Vector2.ZERO, 7.5, Color(0.92, 0.72, 0.16))
+				draw_arc(Vector2.ZERO, 7.5, 0.0, TAU, 16, Color(1.0, 0.94, 0.55), 1.6)
+				draw_circle(Vector2(-2, -2), 2.2, Color(1.0, 0.96, 0.75))
+			elif skin_id.ends_with("_elven"):
+				draw_circle(Vector2.ZERO, 7.5, Color(0.24, 0.74, 0.32))
+				draw_arc(Vector2.ZERO, 7.5, 0.0, TAU, 16, Color(0.75, 1.0, 0.65), 1.6)
+				draw_circle(Vector2(-2, -2), 2.2, Color(0.85, 1.0, 0.75))
+			elif skin_id.ends_with("_steampunk"):
+				draw_circle(Vector2.ZERO, 7.5, Color(0.58, 0.38, 0.20))
+				draw_arc(Vector2.ZERO, 7.5, 0.0, TAU, 16, Color(0.9, 0.72, 0.36), 1.8)
+				draw_circle(Vector2(-2, -2), 2.0, Color(0.95, 0.82, 0.55))
+			else:
+				draw_circle(Vector2.ZERO, 7.0, Color(0.18, 0.2, 0.24))
+				draw_arc(Vector2.ZERO, 7.0, 0.0, TAU, 16, Color(0.5, 0.55, 0.6), 1.5)
+				draw_circle(Vector2(-2, -2), 2.0, Color(0.7, 0.75, 0.8))
 		"tesla":
-			draw_circle(Vector2.ZERO, 7.0, Color(0.25, 0.75, 1.0, 0.45))
-			draw_circle(Vector2.ZERO, 4.5, Color(0.75, 0.96, 1.0))
+			if skin_id.ends_with("_emas"):
+				draw_circle(Vector2.ZERO, 8.0, Color(0.98, 0.78, 0.15, 0.5))
+				draw_circle(Vector2.ZERO, 4.8, Color(1.0, 0.95, 0.65))
+			elif skin_id.ends_with("_elven"):
+				draw_circle(Vector2.ZERO, 8.0, Color(0.25, 0.85, 0.38, 0.5))
+				draw_circle(Vector2.ZERO, 4.8, Color(0.75, 1.0, 0.72))
+			elif skin_id.ends_with("_steampunk"):
+				draw_circle(Vector2.ZERO, 8.0, Color(0.88, 0.52, 0.16, 0.5))
+				draw_circle(Vector2.ZERO, 4.8, Color(0.62, 0.92, 1.0))
+			elif skin_id.ends_with("_api"):
+				draw_circle(Vector2.ZERO, 8.0, Color(1.0, 0.32, 0.08, 0.55))
+				draw_circle(Vector2.ZERO, 5.0, Color(1.0, 0.82, 0.25))
+			else:
+				draw_circle(Vector2.ZERO, 7.0, Color(0.25, 0.75, 1.0, 0.45))
+				draw_circle(Vector2.ZERO, 4.5, Color(0.75, 0.96, 1.0))
 		_:
 			# "arrow"
-			draw_line(Vector2(-9, 0), Vector2(6, 0), Color(0.68, 0.45, 0.22), 2.5)
-			var tip := PackedVector2Array([Vector2(10, 0), Vector2(4, -3.5), Vector2(4, 3.5)])
-			draw_colored_polygon(tip, Color(0.85, 0.9, 0.95))
-			draw_line(Vector2(-9, 0), Vector2(-12, -3), Color.WHITE, 1.5)
-			draw_line(Vector2(-9, 0), Vector2(-12, 3), Color.WHITE, 1.5)
+			if skin_id.ends_with("_emas"):
+				draw_line(Vector2(-10, 0), Vector2(6, 0), Color(0.98, 0.82, 0.22), 2.8)
+				var gold_tip := PackedVector2Array([Vector2(11, 0), Vector2(4, -3.5), Vector2(4, 3.5)])
+				draw_colored_polygon(gold_tip, Color(1.0, 0.94, 0.45))
+				draw_line(Vector2(-10, 0), Vector2(-13, -3), Color(1.0, 0.9, 0.4), 1.6)
+				draw_line(Vector2(-10, 0), Vector2(-13, 3), Color(1.0, 0.9, 0.4), 1.6)
+			elif skin_id.ends_with("_elven"):
+				draw_line(Vector2(-10, 0), Vector2(6, 0), Color(0.32, 0.82, 0.36), 2.6)
+				var elven_tip := PackedVector2Array([Vector2(11, 0), Vector2(4, -3.5), Vector2(4, 3.5)])
+				draw_colored_polygon(elven_tip, Color(0.76, 1.0, 0.65))
+				draw_line(Vector2(-10, 0), Vector2(-13, -3), Color(0.65, 1.0, 0.55), 1.5)
+				draw_line(Vector2(-10, 0), Vector2(-13, 3), Color(0.65, 1.0, 0.55), 1.5)
+			elif skin_id.ends_with("_steampunk"):
+				draw_line(Vector2(-10, 0), Vector2(6, 0), Color(0.72, 0.45, 0.2), 2.8)
+				var sp_tip := PackedVector2Array([Vector2(11, 0), Vector2(4, -3.5), Vector2(4, 3.5)])
+				draw_colored_polygon(sp_tip, Color(0.92, 0.82, 0.55))
+				draw_line(Vector2(-10, 0), Vector2(-13, -3), Color(0.88, 0.65, 0.32), 1.5)
+				draw_line(Vector2(-10, 0), Vector2(-13, 3), Color(0.88, 0.65, 0.32), 1.5)
+			elif skin_id.ends_with("_es"):
+				draw_line(Vector2(-10, 0), Vector2(6, 0), Color(0.42, 0.86, 1.0), 2.8)
+				var ice_tip := PackedVector2Array([Vector2(11, 0), Vector2(4, -3.5), Vector2(4, 3.5)])
+				draw_colored_polygon(ice_tip, Color(0.86, 0.98, 1.0))
+				draw_line(Vector2(-10, 0), Vector2(-13, -3), Color(0.75, 0.95, 1.0), 1.5)
+				draw_line(Vector2(-10, 0), Vector2(-13, 3), Color(0.75, 0.95, 1.0), 1.5)
+			else:
+				draw_line(Vector2(-9, 0), Vector2(6, 0), Color(0.68, 0.45, 0.22), 2.5)
+				var tip := PackedVector2Array([Vector2(10, 0), Vector2(4, -3.5), Vector2(4, 3.5)])
+				draw_colored_polygon(tip, Color(0.85, 0.9, 0.95))
+				draw_line(Vector2(-9, 0), Vector2(-12, -3), Color.WHITE, 1.5)
+				draw_line(Vector2(-9, 0), Vector2(-12, 3), Color.WHITE, 1.5)

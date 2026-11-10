@@ -2,6 +2,10 @@ extends Node2D
 
 const SAVE_PATH := "user://save_data.cfg"
 const MENU_SCENE_PATH := "res://scenes/MainMenu.tscn"
+const TOWER_SCRIPT := preload("res://scripts/tower.gd")
+
+const DEFAULT_SHOP_COINS := 250
+const DEFAULT_SHOP_GEMS := 50
 
 const SFX_BUILD := preload("res://assets/sounds/build_tower.wav")
 const SFX_UPGRADE := preload("res://assets/sounds/upgrade_tower.wav")
@@ -31,9 +35,14 @@ var coins: int = 150
 var lives: int = 10
 var current_wave: int = 0
 var highest_wave: int = 0
-var bonus_coins_lv: int = 0
-var bonus_lives_lv: int = 0
-var bonus_damage_lv: int = 0
+var shop_coins: int = DEFAULT_SHOP_COINS
+var shop_gems: int = DEFAULT_SHOP_GEMS
+var equipped_skins: Dictionary = {
+	"archer": "",
+	"ice": "",
+	"cannon": "",
+	"tesla": "",
+}
 var is_wave_active: bool = false
 var is_game_over: bool = false
 var build_mode: bool = true
@@ -86,8 +95,9 @@ var _message_timer: float = 0.0
 
 func _ready() -> void:
 	_load_progress()
-	coins = starting_coins + bonus_coins_lv * 25
-	lives = starting_lives + bonus_lives_lv * 2
+	coins = starting_coins
+	lives = starting_lives
+	_apply_equipped_skin_icons()
 	_sync_path_visual()
 
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
@@ -212,9 +222,8 @@ func _try_build_tower(world_pos: Vector2) -> void:
 	tower.global_position = world_pos
 	tower.set("projectile_parent", projectiles_container)
 	if tower.has_method("configure_tower"):
-		tower.configure_tower(selected_tower_type)
-	if bonus_damage_lv > 0:
-		tower.attack_damage *= (1.0 + 0.10 * float(bonus_damage_lv))
+		var eq_skin: String = String(equipped_skins.get(selected_tower_type, ""))
+		tower.configure_tower(selected_tower_type, eq_skin)
 
 	_play_sfx(SFX_BUILD)
 	_select_tower(tower)
@@ -331,12 +340,17 @@ func _check_wave_completed() -> void:
 	var bonus: int = 20 + current_wave * 5
 	coins += bonus
 
+	var shop_c_gain: int = 25
+	var shop_g_gain: int = 15 if (current_wave % 5 == 0) else 5
+	shop_coins += shop_c_gain
+	shop_gems += shop_g_gain
+
 	if current_wave > highest_wave:
 		highest_wave = current_wave
-		_save_progress()
+	_save_progress()
 
 	_play_sfx(SFX_WAVE_CLEAR)
-	_show_message("Wave %d selesai! Bonus +%d koin." % [current_wave, bonus])
+	_show_message("Wave %d selesai! +%d Koin Match | Toko: +%d Koin, +%d Berlian" % [current_wave, bonus, shop_c_gain, shop_g_gain], 3.5)
 
 
 func _trigger_game_over() -> void:
@@ -515,23 +529,51 @@ func _on_placement_preview_draw() -> void:
 	placement_preview.draw_arc(_hover_world_pos, preview_range, 0.0, TAU, 48, Color(line_color.r, line_color.g, line_color.b, 0.45), 1.5)
 
 
+func _apply_equipped_skin_icons() -> void:
+	archer_button.icon = TOWER_SCRIPT.get_texture_for("archer", String(equipped_skins.get("archer", "")))
+	ice_button.icon = TOWER_SCRIPT.get_texture_for("ice", String(equipped_skins.get("ice", "")))
+	cannon_button.icon = TOWER_SCRIPT.get_texture_for("cannon", String(equipped_skins.get("cannon", "")))
+	tesla_button.icon = TOWER_SCRIPT.get_texture_for("tesla", String(equipped_skins.get("tesla", "")))
+
+
 func _load_progress() -> void:
 	var config := ConfigFile.new()
 	var err: Error = config.load(SAVE_PATH)
 	if err == OK:
 		highest_wave = int(config.get_value("progress", "highest_wave", 0))
-		bonus_coins_lv = int(config.get_value("shop", "bonus_coins_lv", 0))
-		bonus_lives_lv = int(config.get_value("shop", "bonus_lives_lv", 0))
-		bonus_damage_lv = int(config.get_value("shop", "bonus_damage_lv", 0))
+		shop_coins = int(config.get_value("wallet", "shop_coins", DEFAULT_SHOP_COINS))
+		shop_gems = int(config.get_value("wallet", "shop_gems", DEFAULT_SHOP_GEMS))
+
+		var owned: Array[String] = []
+		var raw_owned: Variant = config.get_value("skins", "owned", [])
+		if raw_owned is Array:
+			for s in raw_owned:
+				owned.append(String(s))
+
+		var raw_eq: Variant = config.get_value("skins", "equipped", {})
+		if raw_eq is Dictionary:
+			for k in equipped_skins.keys():
+				var sid: String = String(raw_eq.get(k, ""))
+				if sid != "" and owned.has(sid) and TOWER_SCRIPT.SKIN_TEXTURES.has(sid):
+					equipped_skins[k] = sid
+				else:
+					equipped_skins[k] = ""
 	else:
 		highest_wave = 0
-		bonus_coins_lv = 0
-		bonus_lives_lv = 0
-		bonus_damage_lv = 0
+		shop_coins = DEFAULT_SHOP_COINS
+		shop_gems = DEFAULT_SHOP_GEMS
+		equipped_skins = {
+			"archer": "",
+			"ice": "",
+			"cannon": "",
+			"tesla": "",
+		}
 
 
 func _save_progress() -> void:
 	var config := ConfigFile.new()
 	config.load(SAVE_PATH)
 	config.set_value("progress", "highest_wave", highest_wave)
+	config.set_value("wallet", "shop_coins", shop_coins)
+	config.set_value("wallet", "shop_gems", shop_gems)
 	config.save(SAVE_PATH)

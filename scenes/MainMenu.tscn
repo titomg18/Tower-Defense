@@ -1,0 +1,524 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_menu"]
+[ext_resource type="Texture2D" path="res://assets/images/main_menu_bg.png" id="2_bg"]
+[ext_resource type="Texture2D" path="res://assets/images/archer_tower.png" id="3_archer"]
+[ext_resource type="Texture2D" path="res://assets/images/cannon_tower.png" id="4_cannon"]
+[ext_resource type="Texture2D" path="res://assets/images/enemy_goblin.png" id="5_goblin"]
+[ext_resource type="Texture2D" path="res://assets/images/ice_tower.png" id="6_ice"]
+[ext_resource type="Texture2D" path="res://assets/images/tesla_tower.png" id="7_tesla"]
+[ext_resource type="AudioStream" path="res://assets/sounds/bgm_forest.wav" id="8_bgm"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_bg")
+expand_mode = 1
+
+[node name="DecorLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ArcherDecor" type="TextureRect" parent="DecorLayer"]
+layout_mode = 0
+offset_left = 150.0
+offset_top = 285.0
+offset_right = 315.0
+offset_bottom = 450.0
+mouse_filter = 2
+texture = ExtResource("3_archer")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CannonDecor" type="TextureRect" parent="DecorLayer"]
+layout_mode = 0
+offset_left = 965.0
+offset_top = 295.0
+offset_right = 1130.0
+offset_bottom = 460.0
+mouse_filter = 2
+texture = ExtResource("4_cannon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GoblinDecor" type="TextureRect" parent="DecorLayer"]
+layout_mode = 0
+offset_left = 1045.0
+offset_top = 510.0
+offset_right = 1175.0
+offset_bottom = 640.0
+mouse_filter = 2
+texture = ExtResource("5_goblin")
+expand_mode = 1
+stretch_mode = 5
+flip_h = true
+
+[node name="SettingsButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 84.0
+offset_bottom = 84.0
+theme_override_colors/font_color = Color(0.95, 0.9, 0.8, 1)
+theme_override_colors/font_outline_color = Color(0.16, 0.09, 0.04, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 30
+text = "⚙"
+
+[node name="RecordBoard" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -266.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 98.0
+grow_horizontal = 0
+
+[node name="Margin" type="MarginContainer" parent="RecordBoard"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="RecordBoard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="RecordTitle" type="Label" parent="RecordBoard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.86, 0.66, 1)
+theme_override_colors/font_outline_color = Color(0.18, 0.1, 0.04, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 15
+text = "REKOR TERTINGGI"
+horizontal_alignment = 1
+
+[node name="RecordValueLabel" type="Label" parent="RecordBoard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0.28, 1)
+theme_override_colors/font_outline_color = Color(0.18, 0.1, 0.04, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 24
+text = "WAVE 0"
+horizontal_alignment = 1
+
+[node name="TitleBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -360.0
+offset_top = 26.0
+offset_right = 360.0
+offset_bottom = 250.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/separation = -4
+
+[node name="TitleLine1" type="Label" parent="TitleBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.84, 0.8, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.55)
+theme_override_colors/font_outline_color = Color(0.16, 0.14, 0.12, 1)
+theme_override_constants/shadow_offset_y = 5
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 64
+text = "TOWER"
+horizontal_alignment = 1
+
+[node name="TitleLine2" type="Label" parent="TitleBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.84, 0.8, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.55)
+theme_override_colors/font_outline_color = Color(0.16, 0.14, 0.12, 1)
+theme_override_constants/shadow_offset_y = 5
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 64
+text = "DEFENSE"
+horizontal_alignment = 1
+
+[node name="RibbonCenter" type="CenterContainer" parent="TitleBox"]
+layout_mode = 2
+
+[node name="RibbonPanel" type="PanelContainer" parent="TitleBox/RibbonCenter"]
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="TitleBox/RibbonCenter/RibbonPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 26
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 26
+theme_override_constants/margin_bottom = 4
+
+[node name="SubtitleLabel" type="Label" parent="TitleBox/RibbonCenter/RibbonPanel/Margin"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.22, 0.12, 0.04, 1)
+theme_override_font_sizes/font_size = 21
+text = "FOREST TRAIL"
+horizontal_alignment = 1
+
+[node name="MenuButtons" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -195.0
+offset_top = 278.0
+offset_right = 195.0
+offset_bottom = 682.0
+grow_horizontal = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="PlayButton" type="Button" parent="MenuButtons"]
+custom_minimum_size = Vector2(390, 106)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.28, 1)
+theme_override_colors/font_hover_color = Color(1, 0.92, 0.45, 1)
+theme_override_colors/font_outline_color = Color(0.2, 0.11, 0.04, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 33
+text = "MAIN
+SEKARANG"
+
+[node name="ShopButton" type="Button" parent="MenuButtons"]
+custom_minimum_size = Vector2(310, 68)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.98, 0.94, 0.84, 1)
+theme_override_colors/font_outline_color = Color(0.18, 0.1, 0.04, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 26
+text = "TOKO"
+
+[node name="HelpButton" type="Button" parent="MenuButtons"]
+custom_minimum_size = Vector2(310, 68)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.98, 0.94, 0.84, 1)
+theme_override_colors/font_outline_color = Color(0.18, 0.1, 0.04, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 26
+text = "BANTUAN"
+
+[node name="QuitButton" type="Button" parent="MenuButtons"]
+custom_minimum_size = Vector2(310, 68)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.98, 0.94, 0.84, 1)
+theme_override_colors/font_outline_color = Color(0.18, 0.1, 0.04, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 26
+text = "KELUAR"
+
+[node name="ShopModal" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.62)
+
+[node name="Panel" type="PanelContainer" parent="ShopModal"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -390.0
+offset_top = -270.0
+offset_right = 390.0
+offset_bottom = 270.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="ShopModal/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 18
+
+[node name="VBox" type="VBoxContainer" parent="ShopModal/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Header" type="HBoxContainer" parent="ShopModal/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="ShopModal/Panel/Margin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 24
+text = "TOKO & KATALOG TOWER"
+
+[node name="PointsLabel" type="Label" parent="ShopModal/Panel/Margin/VBox/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.9, 0.78, 1)
+theme_override_font_sizes/font_size = 18
+text = "Poin Rekor: 0"
+
+[node name="CloseShopButton" type="Button" parent="ShopModal/Panel/Margin/VBox/Header"]
+layout_mode = 2
+text = "Tutup"
+
+[node name="TowersGrid" type="HBoxContainer" parent="ShopModal/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="ArcherCard" type="VBoxContainer" parent="ShopModal/Panel/Margin/VBox/TowersGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Icon" type="TextureRect" parent="ShopModal/Panel/Margin/VBox/TowersGrid/ArcherCard"]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+texture = ExtResource("3_archer")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Desc" type="Label" parent="ShopModal/Panel/Margin/VBox/TowersGrid/ArcherCard"]
+layout_mode = 2
+text = "Archer (50 Koin)
+Dmg 18 | Jangkauan 185
+Tembakan panah cepat"
+horizontal_alignment = 1
+
+[node name="IceCard" type="VBoxContainer" parent="ShopModal/Panel/Margin/VBox/TowersGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Icon" type="TextureRect" parent="ShopModal/Panel/Margin/VBox/TowersGrid/IceCard"]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+texture = ExtResource("6_ice")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Desc" type="Label" parent="ShopModal/Panel/Margin/VBox/TowersGrid/IceCard"]
+layout_mode = 2
+text = "Ice (70 Koin)
+Dmg 12 | Jangkauan 155
+Memperlambat musuh 45%"
+horizontal_alignment = 1
+
+[node name="CannonCard" type="VBoxContainer" parent="ShopModal/Panel/Margin/VBox/TowersGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Icon" type="TextureRect" parent="ShopModal/Panel/Margin/VBox/TowersGrid/CannonCard"]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+texture = ExtResource("4_cannon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Desc" type="Label" parent="ShopModal/Panel/Margin/VBox/TowersGrid/CannonCard"]
+layout_mode = 2
+text = "Cannon (90 Koin)
+Dmg 38 | Jangkauan 150
+Ledakan area (Splash)"
+horizontal_alignment = 1
+
+[node name="TeslaCard" type="VBoxContainer" parent="ShopModal/Panel/Margin/VBox/TowersGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Icon" type="TextureRect" parent="ShopModal/Panel/Margin/VBox/TowersGrid/TeslaCard"]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+texture = ExtResource("7_tesla")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Desc" type="Label" parent="ShopModal/Panel/Margin/VBox/TowersGrid/TeslaCard"]
+layout_mode = 2
+text = "Tesla (110 Koin)
+Dmg 26 | Jangkauan 165
+Petir menyambar 3 musuh"
+horizontal_alignment = 1
+
+[node name="UpgradesTitle" type="Label" parent="ShopModal/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.86, 0.35, 1)
+theme_override_font_sizes/font_size = 18
+text = "Upgrade Permanen (1 Wave Selesai = 10 Poin Rekor)"
+
+[node name="PerkCoinsButton" type="Button" parent="ShopModal/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "Koin Awal +25 (Lv.0/4) — Biaya: 10 Poin"
+
+[node name="PerkLivesButton" type="Button" parent="ShopModal/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "Nyawa Awal +2 (Lv.0/3) — Biaya: 10 Poin"
+
+[node name="PerkDamageButton" type="Button" parent="ShopModal/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "Damage Semua Tower +10% (Lv.0/3) — Biaya: 20 Poin"
+
+[node name="HelpModal" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.62)
+
+[node name="Panel" type="PanelContainer" parent="HelpModal"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -340.0
+offset_top = -230.0
+offset_right = 340.0
+offset_bottom = 230.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="HelpModal/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 18
+
+[node name="VBox" type="VBoxContainer" parent="HelpModal/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Header" type="HBoxContainer" parent="HelpModal/Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="HelpModal/Panel/Margin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 24
+text = "BANTUAN & CARA BERMAIN"
+
+[node name="CloseHelpButton" type="Button" parent="HelpModal/Panel/Margin/VBox/Header"]
+layout_mode = 2
+text = "Tutup"
+
+[node name="HelpBody" type="Label" parent="HelpModal/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "1. Pilih jenis tower di panel kiri bawah (Archer, Ice, Cannon, atau Tesla), lalu klik area rumput di luar jalur monster untuk membangunnya.
+2. Tekan tombol Mulai Wave untuk memunculkan gelombang monster dari gua menuju gerbang benteng.
+3. Kalahkan monster untuk mendapatkan koin. Klik tower yang sudah berdiri untuk meningkatkan Damage (+Damage), Jangkauan (+Jangkauan), atau menjualnya.
+4. Cegah monster mencapai gerbang benteng agar Nyawa tidak habis. Setiap kelipatan 5 wave akan muncul Boss Troll!"
+autowrap_mode = 3
+
+[node name="SettingsModal" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.62)
+
+[node name="Panel" type="PanelContainer" parent="SettingsModal"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -165.0
+offset_right = 230.0
+offset_bottom = 165.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="SettingsModal/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 18
+
+[node name="VBox" type="VBoxContainer" parent="SettingsModal/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Header" type="HBoxContainer" parent="SettingsModal/Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="SettingsModal/Panel/Margin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 24
+text = "PENGATURAN"
+
+[node name="CloseSettingsButton" type="Button" parent="SettingsModal/Panel/Margin/VBox/Header"]
+layout_mode = 2
+text = "Tutup"
+
+[node name="SoundToggleButton" type="Button" parent="SettingsModal/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+text = "Suara & Musik: ON"
+
+[node name="VolumeLabel" type="Label" parent="SettingsModal/Panel/Margin/VBox"]
+layout_mode = 2
+text = "Volume Utama: 100%"
+
+[node name="VolumeSlider" type="HSlider" parent="SettingsModal/Panel/Margin/VBox"]
+layout_mode = 2
+value = 100.0
+
+[node name="ResetSaveButton" type="Button" parent="SettingsModal/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Reset Data Rekor & Toko"
+
+[node name="BgmPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("8_bgm")
+volume_db = -14.0
+autoplay = true
+
+[node name="UiSfxPlayer" type="AudioStreamPlayer" parent="."]
+volume_db = -3.0

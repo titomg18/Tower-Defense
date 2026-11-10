@@ -1,0 +1,288 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/Enemy.tscn" id="2_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/Tower.tscn" id="3_tower"]
+[ext_resource type="Texture2D" path="res://assets/images/arena_map.png" id="4_map"]
+[ext_resource type="Texture2D" path="res://assets/images/archer_tower.png" id="5_archer"]
+[ext_resource type="Texture2D" path="res://assets/images/ice_tower.png" id="6_ice"]
+[ext_resource type="Texture2D" path="res://assets/images/cannon_tower.png" id="7_cannon"]
+[ext_resource type="Texture2D" path="res://assets/images/tesla_tower.png" id="8_tesla"]
+[ext_resource type="AudioStream" path="res://assets/sounds/bgm_forest.wav" id="9_bgm"]
+
+[sub_resource type="Curve2D" id="Curve2D_path"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 145, 128, 0, 0, 0, 0, 192, 185, 0, 0, 0, 0, 260, 222, 0, 0, 0, 0, 340, 206, 0, 0, 0, 0, 440, 158, 0, 0, 0, 0, 520, 146, 0, 0, 0, 0, 598, 165, 0, 0, 0, 0, 648, 222, 0, 0, 0, 0, 646, 278, 0, 0, 0, 0, 595, 326, 0, 0, 0, 0, 505, 366, 0, 0, 0, 0, 380, 392, 0, 0, 0, 0, 255, 412, 0, 0, 0, 0, 185, 455, 0, 0, 0, 0, 160, 505, 0, 0, 0, 0, 176, 565, 0, 0, 0, 0, 245, 608, 0, 0, 0, 0, 350, 625, 0, 0, 0, 0, 475, 600, 0, 0, 0, 0, 545, 530, 0, 0, 0, 0, 600, 455, 0, 0, 0, 0, 662, 390, 0, 0, 0, 0, 735, 338, 0, 0, 0, 0, 810, 328, 0, 0, 0, 0, 862, 354, 0, 0, 0, 0, 908, 372, 0, 0, 0, 0, 956, 392, 0, 0, 0, 0, 998, 418, 0, 0, 0, 0, 1002, 448, 0, 0, 0, 0, 955, 490, 0, 0, 0, 0, 905, 535, 0, 0, 0, 0, 885, 575, 0, 0, 0, 0, 925, 608, 0, 0, 0, 0, 1010, 604, 0, 0, 0, 0, 1095, 618, 0, 0, 0, 0, 1170, 650, 0, 0, 0, 0, 1235, 705)
+}
+point_count = 37
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+enemy_scene = ExtResource("2_enemy")
+tower_scene = ExtResource("3_tower")
+
+[node name="BackgroundColor" type="ColorRect" parent="."]
+offset_right = 1280.0
+offset_bottom = 720.0
+mouse_filter = 2
+color = Color(0.14, 0.18, 0.15, 1)
+
+[node name="MapBackground" type="Sprite2D" parent="."]
+texture = ExtResource("4_map")
+centered = false
+
+[node name="PathVisual" type="Line2D" parent="."]
+visible = false
+width = 56.0
+default_color = Color(0.32, 0.27, 0.22, 1)
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+
+[node name="EnemyPath" type="Path2D" parent="."]
+curve = SubResource("Curve2D_path")
+
+[node name="Towers" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Projectiles" type="Node2D" parent="."]
+
+[node name="PlacementPreview" type="Node2D" parent="."]
+z_index = 10
+
+[node name="SpawnTimer" type="Timer" parent="."]
+wait_time = 1.15
+
+[node name="BgmPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("9_bgm")
+volume_db = -14.0
+autoplay = true
+
+[node name="SfxPlayer" type="AudioStreamPlayer" parent="."]
+volume_db = -3.0
+max_polyphony = 8
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="TopBar" type="PanelContainer" parent="HUD"]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 64.0
+grow_horizontal = 2
+
+[node name="Margin" type="MarginContainer" parent="HUD/TopBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 10
+
+[node name="HBox" type="HBoxContainer" parent="HUD/TopBar/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="CoinsLabel" type="Label" parent="HUD/TopBar/Margin/HBox"]
+layout_mode = 2
+text = "Koin: 150"
+
+[node name="LivesLabel" type="Label" parent="HUD/TopBar/Margin/HBox"]
+layout_mode = 2
+text = "Nyawa: 10"
+
+[node name="WaveLabel" type="Label" parent="HUD/TopBar/Margin/HBox"]
+layout_mode = 2
+text = "Wave: 0"
+
+[node name="BestWaveLabel" type="Label" parent="HUD/TopBar/Margin/HBox"]
+layout_mode = 2
+text = "Rekor: Wave 0"
+
+[node name="Spacer" type="Control" parent="HUD/TopBar/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MuteButton" type="Button" parent="HUD/TopBar/Margin/HBox"]
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+text = "Suara: ON"
+
+[node name="BuildModeButton" type="Button" parent="HUD/TopBar/Margin/HBox"]
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+text = "Mode Bangun: ON (50)"
+
+[node name="StartWaveButton" type="Button" parent="HUD/TopBar/Margin/HBox"]
+layout_mode = 2
+text = "Mulai Wave 1"
+
+[node name="MainMenuButton" type="Button" parent="HUD/TopBar/Margin/HBox"]
+layout_mode = 2
+text = "Menu Utama"
+
+[node name="TowerBar" type="PanelContainer" parent="HUD"]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -80.0
+offset_right = 576.0
+offset_bottom = -16.0
+grow_vertical = 0
+
+[node name="Margin" type="MarginContainer" parent="HUD/TowerBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="HBox" type="HBoxContainer" parent="HUD/TowerBar/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ArcherButton" type="Button" parent="HUD/TowerBar/Margin/HBox"]
+custom_minimum_size = Vector2(128, 44)
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+text = "Archer (50)"
+icon = ExtResource("5_archer")
+expand_icon = true
+
+[node name="IceButton" type="Button" parent="HUD/TowerBar/Margin/HBox"]
+custom_minimum_size = Vector2(114, 44)
+layout_mode = 2
+toggle_mode = true
+text = "Ice (70)"
+icon = ExtResource("6_ice")
+expand_icon = true
+
+[node name="CannonButton" type="Button" parent="HUD/TowerBar/Margin/HBox"]
+custom_minimum_size = Vector2(134, 44)
+layout_mode = 2
+toggle_mode = true
+text = "Cannon (90)"
+icon = ExtResource("7_cannon")
+expand_icon = true
+
+[node name="TeslaButton" type="Button" parent="HUD/TowerBar/Margin/HBox"]
+custom_minimum_size = Vector2(132, 44)
+layout_mode = 2
+toggle_mode = true
+text = "Tesla (110)"
+icon = ExtResource("8_tesla")
+expand_icon = true
+
+[node name="UpgradePanel" type="PanelContainer" parent="HUD"]
+visible = false
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -470.0
+offset_top = -124.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="Margin" type="MarginContainer" parent="HUD/UpgradePanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="HUD/UpgradePanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TowerInfoLabel" type="Label" parent="HUD/UpgradePanel/Margin/VBox"]
+layout_mode = 2
+text = "Tower | Damage: 20 (Lv.1) | Jangkauan: 160 (Lv.1)"
+
+[node name="Buttons" type="HBoxContainer" parent="HUD/UpgradePanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="UpgradeDamageButton" type="Button" parent="HUD/UpgradePanel/Margin/VBox/Buttons"]
+layout_mode = 2
+text = "+Damage (40 Koin)"
+
+[node name="UpgradeRangeButton" type="Button" parent="HUD/UpgradePanel/Margin/VBox/Buttons"]
+layout_mode = 2
+text = "+Jangkauan (35 Koin)"
+
+[node name="SellButton" type="Button" parent="HUD/UpgradePanel/Margin/VBox/Buttons"]
+layout_mode = 2
+text = "Jual (+35)"
+
+[node name="CloseUpgradeButton" type="Button" parent="HUD/UpgradePanel/Margin/VBox/Buttons"]
+layout_mode = 2
+text = "Tutup"
+
+[node name="MessageLabel" type="Label" parent="HUD"]
+visible = false
+layout_mode = 3
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -320.0
+offset_top = 74.0
+offset_right = 320.0
+offset_bottom = 102.0
+grow_horizontal = 2
+mouse_filter = 2
+horizontal_alignment = 1
+
+[node name="GameOverPanel" type="PanelContainer" parent="HUD"]
+visible = false
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -130.0
+offset_right = 180.0
+offset_bottom = 130.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="HUD/GameOverPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="HUD/GameOverPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="GameOverTitle" type="Label" parent="HUD/GameOverPanel/Margin/VBox"]
+layout_mode = 2
+text = "GAME OVER"
+horizontal_alignment = 1
+
+[node name="SummaryLabel" type="Label" parent="HUD/GameOverPanel/Margin/VBox"]
+layout_mode = 2
+text = "Wave Dicapai: 0
+Rekor Wave Selesai: 0"
+horizontal_alignment = 1
+
+[node name="RestartButton" type="Button" parent="HUD/GameOverPanel/Margin/VBox"]
+layout_mode = 2
+text = "Main Lagi"
+
+[node name="MainMenuButton" type="Button" parent="HUD/GameOverPanel/Margin/VBox"]
+layout_mode = 2
+text = "Menu Utama"

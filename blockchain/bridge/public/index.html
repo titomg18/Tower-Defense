@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forest Trail — MetaMask Sepolia Companion</title>
+  <script src="/ethers.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #131b13;
+      --stone: #2f332e;
+      --wood: #5b371d;
+      --wood-dark: #3b2210;
+      --gold: #f6c953;
+      --cream: #f8edd4;
+      --green: #328e4b;
+      --cyan: #57c8f8;
+      --danger: #b2372c;
+    }
+    * { box-sizing: border-box; font-family: "Segoe UI", Tahoma, sans-serif; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #213621 0%, #0f160f 75%);
+      color: var(--cream);
+      min-height: 100vh;
+      padding: 24px 16px 48px;
+    }
+    .wrap { max-width: 900px; margin: 0 auto; display: grid; gap: 18px; }
+    .banner {
+      background: linear-gradient(180deg, #6d4121, #4a2a14);
+      border: 4px solid #241207;
+      border-radius: 16px;
+      padding: 18px 22px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.45);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    h1 { margin: 0; font-size: 1.45rem; color: var(--gold); text-shadow: 0 2px 4px #180b04; }
+    .sub { margin: 4px 0 0; font-size: 0.9rem; color: #e2cfa9; }
+    .pill {
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border: 2px solid #241207;
+      background: #2f2014;
+    }
+    .pill.ok { background: #1e5f36; color: #b5ffc8; }
+    .pill.warn { background: #6b4316; color: #ffe093; }
+    .card {
+      background: linear-gradient(180deg, #4b2d18, #372010);
+      border: 4px solid #1e0f06;
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+    .card h2 { margin: 0 0 12px; color: var(--gold); font-size: 1.15rem; }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .stat {
+      background: #2a180b;
+      border: 2px solid #6b4222;
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .stat img { width: 32px; height: 32px; object-fit: contain; }
+    .stat .lbl { font-size: 0.78rem; color: #d5bfa0; }
+    .stat .val { font-size: 1.2rem; font-weight: 800; color: #fff4d2; }
+    button {
+      cursor: pointer;
+      border: 3px solid #241106;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-weight: 800;
+      font-size: 0.92rem;
+      color: #fff8e7;
+      background: #c86420;
+      box-shadow: 0 4px 0 #241106;
+      transition: transform 0.08s ease, filter 0.12s ease;
+    }
+    button:hover:not(:disabled) { filter: brightness(1.1); }
+    button:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #241106; }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    button.green { background: var(--green); }
+    button.blue { background: #266c8e; }
+    button.danger { background: var(--danger); }
+    .tx-highlight {
+      border-color: var(--gold);
+      background: linear-gradient(180deg, #5e3819, #3f240e);
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(246, 201, 83, 0.35); }
+      50% { box-shadow: 0 0 18px 4px rgba(246, 201, 83, 0.5); }
+    }
+    .mono { font-family: Consolas, monospace; font-size: 0.86rem; word-break: break-all; color: #f6ddb1; }
+    a { color: var(--cyan); }
+    .nft-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .nft-item {
+      background: #28160a;
+      border: 2px solid #5c3b1e;
+      border-radius: 10px;
+      padding: 10px 8px;
+      text-align: center;
+      opacity: 0.45;
+    }
+    .nft-item.owned {
+      opacity: 1;
+      border-color: var(--gold);
+      background: #36200d;
+    }
+    .nft-item img { width: 72px; height: 72px; object-fit: contain; display: block; margin: 0 auto 6px; }
+    .nft-item .t { font-size: 0.72rem; color: #ccb895; }
+    .nft-item .n { font-size: 0.82rem; font-weight: 700; color: var(--gold); }
+    .hidden { display: none !important; }
+    .status-msg { margin-top: 10px; padding: 12px 14px; border-radius: 8px; background: #241409; border: 1px solid #6b4222; font-size: 0.9rem; line-height: 1.45; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="banner">
+      <div>
+        <h1>Tower Defense: Forest Trail — MetaMask Bridge</h1>
+        <p class="sub">Penghubung Wallet MetaMask (Ethereum Sepolia) untuk Godot Editor (F5)</p>
+      </div>
+      <div id="netPill" class="pill warn">Memeriksa Status...</div>
+    </div>
+
+    <!-- Wallet Card -->
+    <div class="card">
+      <h2>1. Wallet MetaMask (Ethereum Sepolia)</h2>
+      <div class="row">
+        <button id="btnConnect" class="green">Connect MetaMask</button>
+        <button id="btnDisconnect" class="danger hidden">Putuskan</button>
+        <button id="btnWatchCoins" class="blue hidden">+ Token FTC ke MetaMask</button>
+        <button id="btnWatchGems" class="blue hidden">+ Token FTG ke MetaMask</button>
+        <button id="btnRefresh" class="hidden">Refresh Saldo On-Chain</button>
+      </div>
+      <div id="walletInfo" class="status-msg hidden"></div>
+
+      <div id="balanceStats" class="stat-grid hidden">
+        <div class="stat">
+          <img src="/skins/icon_coin.png" alt="Coin" />
+          <div>
+            <div class="lbl">Koin Toko On-Chain (FTC)</div>
+            <div id="valCoins" class="val">0</div>
+          </div>
+        </div>
+        <div class="stat">
+          <img src="/skins/icon_gem.png" alt="Gem" />
+          <div>
+            <div class="lbl">Berlian On-Chain (FTG)</div>
+            <div id="valGems" class="val">0</div>
+          </div>
+        </div>
+        <div class="stat">
+          <div>
+            <div class="lbl">Saldo Gas Sepolia ETH</div>
+            <div id="valEth" class="val">0 ETH</div>
+          </div>
+        </div>
+        <div class="stat">
+          <div>
+            <div class="lbl">Skin NFT Dimiliki</div>
+            <div id="valNfts" class="val">0 / 16</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deploy Card -->
+    <div id="deployCard" class="card hidden">
+      <h2>2. Deploy Smart Contracts ke Ethereum Sepolia (Hemat Gas)</h2>
+      <p style="margin-top:0; font-size:0.92rem; color:#edd9b7;">
+        Belum ada alamat kontrak di <code>blockchain/config.json</code>. Klik tombol di bawah untuk men-deploy
+        <b>ForestTrailCoin (FTC)</b>, <b>ForestTrailGem (FTG)</b>, dan <b>ForestTrailSkins (ERC-1155 NFT)</b>
+        dalam <b>3 langkah kecil MetaMask</b> (hemat gas &amp; muat untuk saldo ~0.02 SepoliaETH ke atas).
+      </p>
+      <div class="row">
+        <button id="btnDeploy">Deploy Contracts ke Sepolia via MetaMask</button>
+        <a href="https://cloud.google.com/application/web3/faucet/ethereum/sepolia" target="_blank" rel="noreferrer">Butuh Sepolia ETH gratis? (Faucet)</a>
+      </div>
+      <div id="deployStatus" class="status-msg hidden"></div>
+    </div>
+
+    <!-- Contract Addresses Card -->
+    <div id="contractsCard" class="card hidden">
+      <h2>Alamat Smart Contracts (Sepolia Testnet)</h2>
+      <div class="mono" id="contractList"></div>
+    </div>
+
+    <!-- Active Transaction From Godot -->
+    <div id="txCard" class="card tx-highlight hidden">
+      <h2>Permintaan Transaksi dari Godot Game</h2>
+      <div class="row" style="align-items:flex-start;">
+        <img id="txPreviewImg" class="hidden" style="width:78px;height:78px;object-fit:contain;background:#261508;border:2px solid var(--gold);border-radius:10px;padding:4px;" />
+        <div style="flex:1;min-width:220px;">
+          <div id="txTitle" style="font-size:1.1rem;font-weight:800;color:#fff4ce;"></div>
+          <div id="txDesc" style="margin:4px 0 12px;color:#ead4ae;font-size:0.92rem;"></div>
+          <div class="row">
+            <button id="btnConfirmTx" class="green">Konfirmasi di MetaMask Sekarang</button>
+            <button id="btnCancelTx" class="danger">Batalkan</button>
+          </div>
+          <div id="txStatusMsg" class="status-msg hidden"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NFT Gallery -->
+    <div id="nftCard" class="card hidden">
+      <h2>Koleksi NFT Skin On-Chain (ERC-1155)</h2>
+      <div id="nftGrid" class="nft-grid"></div>
+    </div>
+  </div>
+
+  <script>
+    const SEPOLIA_CHAIN_ID = 11155111;
+    const SEPOLIA_CHAIN_HEX = "0xaa36a7";
+
+    let appConfig = null;
+    let currentAddress = "";
+    let userDisconnected = false;
+    let activeTx = null;
+    let autoTriggeredTxId = "";
+    let lastRenderedTxId = "";
+    let lastOwnedIds = [];
+    let partialDeploy = { address: "", coin: "", gem: "" };
+
+    const $ = (id) => document.getElementById(id);
+
+    function shortAddr(addr) {
+      return addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : "";
+    }
+
+    async function apiGet(url) {
+      const r = await fetch(url);
+      return await r.json();
+    }
+
+    async function apiPost(url, data) {
+      const r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data || {})
+      });
+      return await r.json();
+    }
+
+    async function ensureSepoliaNetwork() {
+      if (!window.ethereum) {
+        alert("Ekstensi MetaMask tidak ditemukan di browser ini. Silakan pasang MetaMask terlebih dahulu!");
+        throw new Error("MetaMask missing");
+      }
+      const chainHex = await window.ethereum.request({ method: "eth_chainId" });
+      if (chainHex.toLowerCase() !== SEPOLIA_CHAIN_HEX) {
+        try {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: SEPOLIA_CHAIN_HEX }]
+          });
+        } catch (switchErr) {
+          if (switchErr.code === 4902) {
+            await window.ethereum.request({
+              method: "wallet_addEthereumChain",
+              params: [{
+                chainId: SEPOLIA_CHAIN_HEX,
+                chainName: "Ethereum Sepolia",
+                nativeCurrency: { name: "Sepolia ETH", symbol: "ETH", decimals: 18 },
+                rpcUrls: [appConfig?.rpcUrl || "https://ethereum-sepolia-rpc.publicnode.com"],
+                blockExplorerUrls: ["https://sepolia.etherscan.io"]
+              }]
+            });
+          } else {
+            throw switchErr;
+          }
+        }
+      }
+    }
+
+    async function connectWallet() {
+      userDisconnected = false;
+      await ensureSepoliaNetwork();
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      if (!accounts || !accounts.length) return;
+      currentAddress = ethers.getAddress(accounts[0]);
+      await apiPost("/api/session/connect", {
+        address: currentAddress,
+        chainId: SEPOLIA_CHAIN_ID
+      });
+      await refreshAll();
+    }
+
+    async function disconnectWallet() {
+      userDisconnected = true;
+      currentAddress = "";
+      await apiPost("/api/session/disconnect", {});
+      await refreshAll();
+    }
+
+    async function watchToken(address, symbol) {
+      if (!address) return;
+      await ensureSepoliaNetwork();
+      await window.ethereum.request({
+        method: "wallet_watchAsset",
+        params: {
+          type: "ERC20",
+          options: {
+            address,
+            symbol,
+            decimals: 18
+          }
+        }
+      });
+    }
+
+    async function deployContracts() {
+      try {
+        $("btnDeploy").disabled = true;
+        $("deployStatus").classList.remove("hidden");
+        $("deployStatus").textContent = "Memeriksa jaringan Sepolia dan memuat artifact kontrak...";
+        await ensureSepoliaNetwork();
+        if (!currentAddress) await connectWallet();
+
+        const art = await apiGet("/api/deploy-artifact");
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const signerAddr = ethers.getAddress(await signer.getAddress());
+
+        if (partialDeploy.address.toLowerCase() !== signerAddr.toLowerCase()) {
+          partialDeploy = { address: signerAddr, coin: "", gem: "" };
+        }
+
+        const explorer = appConfig?.explorerUrl || "https://sepolia.etherscan.io";
+        const baseNonce = await provider.getTransactionCount(signerAddr, "pending");
+        let offset = 0;
+        if (!partialDeploy.coin && !partialDeploy.gem) offset = 2;
+        else if (partialDeploy.coin && !partialDeploy.gem) offset = 1;
+        const expectedSkinsAddr = ethers.getCreateAddress({ from: signerAddr, nonce: baseNonce + offset });
+
+        if (!partialDeploy.coin) {
+          $("deployStatus").textContent = "Langkah 1/3: Konfirmasi deploy ForestTrailCoin (FTC) di MetaMask (~0.005 ETH buffer)...";
+          const coinFac = new ethers.ContractFactory(art.coin.abi, art.coin.bytecode, signer);
+          const coinContract = await coinFac.deploy(expectedSkinsAddr);
+          const coinTx = coinContract.deploymentTransaction();
+          $("deployStatus").innerHTML = `1/3 FTC terkirim: <a target="_blank" href="${explorer}/tx/${coinTx.hash}">${coinTx.hash}</a><br/>Menunggu konfirmasi block Sepolia...`;
+          await coinContract.waitForDeployment();
+          partialDeploy.coin = await coinContract.getAddress();
+        }
+
+        if (!partialDeploy.gem) {
+          $("deployStatus").textContent = "Langkah 2/3: Konfirmasi deploy ForestTrailGem (FTG) di MetaMask (~0.005 ETH buffer)...";
+          const gemFac = new ethers.ContractFactory(art.gem.abi, art.gem.bytecode, signer);
+          const gemContract = await gemFac.deploy(expectedSkinsAddr);
+          const gemTx = gemContract.deploymentTransaction();
+          $("deployStatus").innerHTML = `2/3 FTG terkirim: <a target="_blank" href="${explorer}/tx/${gemTx.hash}">${gemTx.hash}</a><br/>Menunggu konfirmasi block Sepolia...`;
+          await gemContract.waitForDeployment();
+          partialDeploy.gem = await gemContract.getAddress();
+        }
+
+        $("deployStatus").textContent = "Langkah 3/3: Konfirmasi deploy ForestTrailSkins NFT Hub (ERC-1155) di MetaMask...";
+        const skinsFac = new ethers.ContractFactory(art.skins.abi, art.skins.bytecode, signer);
+        const skinsContractObj = await skinsFac.deploy(
+          partialDeploy.coin,
+          partialDeploy.gem,
+          art.defaultBaseUri,
+          art.rewardSignerAddress
+        );
+        const deployTx = skinsContractObj.deploymentTransaction();
+        $("deployStatus").innerHTML = `3/3 Skins NFT terkirim: <a target="_blank" href="${explorer}/tx/${deployTx.hash}">${deployTx.hash}</a><br/>Menunggu konfirmasi block Sepolia...`;
+        await skinsContractObj.waitForDeployment();
+        const skinsContract = await skinsContractObj.getAddress();
+
+        const coinCheck = new ethers.Contract(partialDeploy.coin, art.coin.abi, signer);
+        const gemCheck = new ethers.Contract(partialDeploy.gem, art.gem.abi, signer);
+        if ((await coinCheck.gameHub()).toLowerCase() !== skinsContract.toLowerCase()) {
+          $("deployStatus").textContent = "Menyelaraskan alamat FTC ke kontrak Skins...";
+          const tx1 = await coinCheck.setGameHub(skinsContract);
+          await tx1.wait(1);
+        }
+        if ((await gemCheck.gameHub()).toLowerCase() !== skinsContract.toLowerCase()) {
+          $("deployStatus").textContent = "Menyelaraskan alamat FTG ke kontrak Skins...";
+          const tx2 = await gemCheck.setGameHub(skinsContract);
+          await tx2.wait(1);
+        }
+
+        $("deployStatus").textContent = "Menyimpan alamat kontrak ke blockchain/config.json...";
+        const saved = await apiPost("/api/config/deployed", {
+          skinsContract,
+          deployTxHash: deployTx.hash,
+          deployerAddress: currentAddress
+        });
+
+        if (!saved.ok) {
+          throw new Error(saved.error || "Gagal menyimpan config.");
+        }
+        partialDeploy = { address: "", coin: "", gem: "" };
+        $("deployStatus").textContent = `Sukses deploy ke Sepolia! Kontrak Skins: ${skinsContract}`;
+        await refreshAll();
+      } catch (err) {
+        $("deployStatus").classList.remove("hidden");
+        const partialNote = partialDeploy.coin ? " (Langkah yang sudah sukses tersimpan sementara, klik Deploy lagi untuk melanjutkan)." : "";
+        $("deployStatus").textContent = `Deploy gagal/dibatalkan: ${err.shortMessage || err.message}${partialNote}`;
+      } finally {
+        $("btnDeploy").disabled = false;
+      }
+    }
+
+    async function executePendingTx() {
+      if (!activeTx || activeTx.status !== "waiting_wallet") return;
+      try {
+        $("btnConfirmTx").disabled = true;
+        $("txStatusMsg").classList.remove("hidden");
+        $("txStatusMsg").textContent = "Menunggu konfirmasi di popup MetaMask...";
+        await ensureSepoliaNetwork();
+        if (!currentAddress) await connectWallet();
+
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const signerAddr = ethers.getAddress(await signer.getAddress());
+
+        const sent = await signer.sendTransaction({
+          from: signerAddr,
+          to: activeTx.to,
+          data: activeTx.data
+        });
+
+        await apiPost("/api/tx/update", {
+          txId: activeTx.id,
+          status: "submitted",
+          txHash: sent.hash
+        });
+
+        $("txStatusMsg").innerHTML = `Tx dikirim ke Sepolia: <a target="_blank" href="${appConfig.explorerUrl}/tx/${sent.hash}">${sent.hash}</a><br/>Menunggu block konfirmasi (biasanya 10-20 detik)...`;
+
+        const receipt = await sent.wait(1);
+        if (receipt && receipt.status === 1) {
+          await apiPost("/api/tx/update", {
+            txId: activeTx.id,
+            status: "confirmed",
+            txHash: sent.hash
+          });
+          $("txStatusMsg").innerHTML = `BERHASIL TERKONFIRMASI! Kamu bisa kembali ke game Godot.<br/>Tx: <a target="_blank" href="${appConfig.explorerUrl}/tx/${sent.hash}">${sent.hash}</a>`;
+        } else {
+          await apiPost("/api/tx/update", {
+            txId: activeTx.id,
+            status: "failed",
+            txHash: sent.hash,
+            error: "Transaksi revert di Sepolia"
+          });
+          $("txStatusMsg").textContent = "Transaksi gagal / revert di on-chain.";
+        }
+        await refreshAll();
+      } catch (err) {
+        const rejected = err?.code === 4001 || err?.code === "ACTION_REJECTED";
+        const msg = rejected ? "Dibatalkan pengguna di MetaMask." : (err.shortMessage || err.message || "Error transaksi");
+        await apiPost("/api/tx/update", {
+          txId: activeTx.id,
+          status: rejected ? "rejected" : "failed",
+          error: msg
+        });
+        $("txStatusMsg").textContent = msg;
+      } finally {
+        $("btnConfirmTx").disabled = false;
+      }
+    }
+
+    async function cancelPendingTx() {
+      if (!activeTx) return;
+      await apiPost("/api/tx/update", {
+        txId: activeTx.id,
+        status: "rejected",
+        error: "Dibatalkan dari browser companion"
+      });
+      await pollState();
+    }
+
+    function renderNftGrid(ownedIds) {
+      if (!appConfig?.skinsCatalog) return;
+      $("nftGrid").innerHTML = appConfig.skinsCatalog.map((s) => {
+        const owned = ownedIds.includes(s.id);
+        return `
+          <div class="nft-item ${owned ? "owned" : ""}">
+            <img src="/skins/${s.image}" alt="${s.name}" />
+            <div class="t">${s.towerName}</div>
+            <div class="n">#${s.tokenId} ${s.name}</div>
+            <div class="t" style="margin-top:2px;color:${owned ? "#9dffaf" : "#b89f78"};">
+              ${owned ? "DIMILIKI (NFT)" : `${s.price} ${s.currencyLabel}`}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function refreshAll() {
+      appConfig = await apiGet("/api/config");
+      const status = await apiGet("/api/status");
+
+      if (window.ethereum && !currentAddress && !userDisconnected) {
+        const accts = await window.ethereum.request({ method: "eth_accounts" });
+        if (accts && accts.length) {
+          const chainHex = await window.ethereum.request({ method: "eth_chainId" });
+          if (chainHex.toLowerCase() === SEPOLIA_CHAIN_HEX) {
+            currentAddress = ethers.getAddress(accts[0]);
+            if (!status.wallet?.connected || status.wallet.address !== currentAddress) {
+              await apiPost("/api/session/connect", { address: currentAddress, chainId: SEPOLIA_CHAIN_ID });
+            }
+          }
+        }
+      } else if (status.wallet?.connected && !currentAddress && !userDisconnected) {
+        currentAddress = status.wallet.address;
+      }
+
+      if (currentAddress) {
+        $("netPill").className = "pill ok";
+        $("netPill").textContent = `Sepolia: ${shortAddr(currentAddress)}`;
+        $("btnConnect").textContent = `Terhubung (${shortAddr(currentAddress)})`;
+        $("btnDisconnect").classList.remove("hidden");
+        $("btnRefresh").classList.remove("hidden");
+        $("walletInfo").classList.remove("hidden");
+        $("walletInfo").innerHTML = `Wallet Aktif: <span class="mono">${currentAddress}</span>`;
+        $("balanceStats").classList.remove("hidden");
+      } else {
+        $("netPill").className = "pill warn";
+        $("netPill").textContent = "Wallet Belum Terhubung";
+        $("btnConnect").textContent = "Connect MetaMask";
+        $("btnDisconnect").classList.add("hidden");
+        $("btnRefresh").classList.add("hidden");
+        $("walletInfo").classList.add("hidden");
+        $("balanceStats").classList.add("hidden");
+      }
+
+      if (appConfig.contractsDeployed) {
+        $("deployCard").classList.add("hidden");
+        $("contractsCard").classList.remove("hidden");
+        $("contractList").innerHTML = [
+          `Skins NFT (ERC-1155): <a target="_blank" href="${appConfig.explorerUrl}/address/${appConfig.skinsContract}">${appConfig.skinsContract}</a>`,
+          `Koin FTC  (ERC-20)  : <a target="_blank" href="${appConfig.explorerUrl}/address/${appConfig.coinContract}">${appConfig.coinContract}</a>`,
+          `Berlian FTG (ERC-20): <a target="_blank" href="${appConfig.explorerUrl}/address/${appConfig.gemContract}">${appConfig.gemContract}</a>`
+        ].join("<br/>");
+        if (currentAddress) {
+          $("btnWatchCoins").classList.remove("hidden");
+          $("btnWatchGems").classList.remove("hidden");
+        }
+      } else {
+        $("deployCard").classList.remove("hidden");
+        $("contractsCard").classList.add("hidden");
+        $("btnWatchCoins").classList.add("hidden");
+        $("btnWatchGems").classList.add("hidden");
+      }
+
+      if (currentAddress) {
+        const prof = await apiGet(`/api/profile?address=${encodeURIComponent(currentAddress)}`);
+        if (prof.ok) {
+          $("valEth").textContent = `${prof.ethBalance} ETH`;
+          $("valCoins").textContent = prof.coinBalance;
+          $("valGems").textContent = prof.gemBalance;
+          lastOwnedIds = prof.ownedSkinIds || [];
+          $("valNfts").textContent = `${lastOwnedIds.length} / 16`;
+          $("nftCard").classList.remove("hidden");
+          renderNftGrid(lastOwnedIds);
+        }
+      } else {
+        $("nftCard").classList.add("hidden");
+      }
+
+      await pollState();
+    }
+
+    async function pollState() {
+      const pending = await apiGet("/api/tx/pending");
+      const status = await apiGet("/api/status");
+      if (!status.wallet?.connected && currentAddress) {
+        currentAddress = "";
+        await refreshAll();
+        return;
+      }
+
+      const urlTxId = new URLSearchParams(window.location.search).get("txId");
+      activeTx = pending.tx;
+
+      if (activeTx && (activeTx.status === "waiting_wallet" || activeTx.status === "submitted")) {
+        if (lastRenderedTxId !== activeTx.id) {
+          lastRenderedTxId = activeTx.id;
+          $("txStatusMsg").classList.add("hidden");
+          $("txStatusMsg").textContent = "";
+        }
+        $("txCard").classList.remove("hidden");
+        $("txTitle").textContent = activeTx.label;
+        $("txDesc").textContent = activeTx.description;
+        if (activeTx.params?.image) {
+          $("txPreviewImg").src = `/skins/${activeTx.params.image}`;
+          $("txPreviewImg").classList.remove("hidden");
+        } else {
+          $("txPreviewImg").classList.add("hidden");
+        }
+
+        const isWaiting = activeTx.status === "waiting_wallet";
+        $("btnConfirmTx").disabled = !isWaiting;
+        $("btnCancelTx").disabled = !isWaiting;
+
+        if (activeTx.status === "submitted" && activeTx.txHash) {
+          $("txStatusMsg").classList.remove("hidden");
+          $("txStatusMsg").innerHTML = `Menunggu block Sepolia: <a target="_blank" href="${appConfig?.explorerUrl || "https://sepolia.etherscan.io"}/tx/${activeTx.txHash}">${activeTx.txHash}</a>`;
+        }
+
+        if (urlTxId && urlTxId === activeTx.id && isWaiting && autoTriggeredTxId !== activeTx.id) {
+          autoTriggeredTxId = activeTx.id;
+          executePendingTx();
+        }
+      } else if (activeTx && activeTx.status === "confirmed") {
+        $("txCard").classList.remove("hidden");
+        $("txTitle").textContent = `${activeTx.label} — Selesai`;
+        $("btnConfirmTx").disabled = true;
+        $("btnCancelTx").disabled = true;
+        if (activeTx.txHash) {
+          $("txStatusMsg").classList.remove("hidden");
+          $("txStatusMsg").innerHTML = `BERHASIL TERKONFIRMASI! Kamu bisa kembali ke game Godot.<br/>Tx: <a target="_blank" href="${appConfig?.explorerUrl || "https://sepolia.etherscan.io"}/tx/${activeTx.txHash}">${activeTx.txHash}</a>`;
+        }
+      } else {
+        $("txCard").classList.add("hidden");
+      }
+    }
+
+    $("btnConnect").addEventListener("click", connectWallet);
+    $("btnDisconnect").addEventListener("click", disconnectWallet);
+    $("btnRefresh").addEventListener("click", refreshAll);
+    $("btnDeploy").addEventListener("click", deployContracts);
+    $("btnConfirmTx").addEventListener("click", executePendingTx);
+    $("btnCancelTx").addEventListener("click", cancelPendingTx);
+    $("btnWatchCoins").addEventListener("click", () => watchToken(appConfig?.coinContract, "FTC"));
+    $("btnWatchGems").addEventListener("click", () => watchToken(appConfig?.gemContract, "FTG"));
+
+    if (window.ethereum) {
+      window.ethereum.on("accountsChanged", async (accts) => {
+        if (!accts || !accts.length) {
+          await disconnectWallet();
+          return;
+        }
+        userDisconnected = false;
+        currentAddress = ethers.getAddress(accts[0]);
+        await apiPost("/api/session/connect", { address: currentAddress, chainId: SEPOLIA_CHAIN_ID });
+        await refreshAll();
+      });
+      window.ethereum.on("chainChanged", () => refreshAll());
+    }
+
+    refreshAll();
+    setInterval(pollState, 1200);
+  </script>
+</body>
+</html>

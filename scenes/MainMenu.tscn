@@ -85,6 +85,79 @@ theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 30
 text = "⚙"
 
+[node name="WalletPanel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 98.0
+offset_right = 278.0
+offset_bottom = 266.0
+
+[node name="Margin" type="MarginContainer" parent="WalletPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="WalletPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="WalletTitleLabel" type="Label" parent="WalletPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.86, 0.42, 1)
+theme_override_colors/font_outline_color = Color(0.18, 0.09, 0.03, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 13
+text = "WEB3 • ETHEREUM SEPOLIA"
+horizontal_alignment = 1
+
+[node name="WalletStatusLabel" type="Label" parent="WalletPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.92, 0.84, 1)
+theme_override_colors/font_outline_color = Color(0.16, 0.08, 0.03, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+text = "Wallet belum terhubung (Mode Lokal)"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="WalletButtonsRow" type="HBoxContainer" parent="WalletPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="ConnectWalletButton" type="Button" parent="WalletPanel/Margin/VBox/WalletButtonsRow"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.96, 0.86, 1)
+theme_override_colors/font_outline_color = Color(0.18, 0.09, 0.03, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 13
+text = "Connect MetaMask"
+
+[node name="DisconnectWalletButton" type="Button" parent="WalletPanel/Margin/VBox/WalletButtonsRow"]
+visible = false
+custom_minimum_size = Vector2(68, 34)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.94, 0.88, 1)
+theme_override_colors/font_outline_color = Color(0.22, 0.05, 0.04, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+text = "Putus"
+
+[node name="WalletClaimButton" type="Button" parent="WalletPanel/Margin/VBox"]
+visible = false
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.94, 0.56, 1)
+theme_override_colors/font_outline_color = Color(0.18, 0.09, 0.03, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+text = "Klaim ke Sepolia"
+
 [node name="RecordBoard" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = 1
@@ -253,9 +326,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -460.0
-offset_top = -312.0
+offset_top = -322.0
 offset_right = 460.0
-offset_bottom = 332.0
+offset_bottom = 342.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -264,7 +337,7 @@ layout_mode = 2
 theme_override_constants/margin_left = 14
 theme_override_constants/margin_top = 18
 theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 14
+theme_override_constants/margin_bottom = 12
 
 [node name="WoodBoard" type="PanelContainer" parent="ShopModal/StoneFrame/StoneMargin"]
 layout_mode = 2
@@ -272,13 +345,13 @@ layout_mode = 2
 [node name="Margin" type="MarginContainer" parent="ShopModal/StoneFrame/StoneMargin/WoodBoard"]
 layout_mode = 2
 theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 46
+theme_override_constants/margin_top = 42
 theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 14
+theme_override_constants/margin_bottom = 12
 
 [node name="VBox" type="VBoxContainer" parent="ShopModal/StoneFrame/StoneMargin/WoodBoard/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 alignment = 1
 
 [node name="CategoryTabs" type="HBoxContainer" parent="ShopModal/StoneFrame/StoneMargin/WoodBoard/Margin/VBox"]
@@ -335,6 +408,29 @@ theme_override_colors/font_outline_color = Color(0.18, 0.09, 0.03, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 15
 text = "Dimiliki"
+
+[node name="Web3ShopBar" type="HBoxContainer" parent="ShopModal/StoneFrame/StoneMargin/WoodBoard/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Web3ShopLabel" type="Label" parent="ShopModal/StoneFrame/StoneMargin/WoodBoard/Margin/VBox/Web3ShopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.95, 0.91, 0.78, 1)
+theme_override_colors/font_outline_color = Color(0.16, 0.08, 0.03, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 13
+text = "Mode Lokal • Hubungkan MetaMask untuk Mint Skin NFT & Token Sepolia"
+
+[node name="Web3ActionButton" type="Button" parent="ShopModal/StoneFrame/StoneMargin/WoodBoard/Margin/VBox/Web3ShopBar"]
+custom_minimum_size = Vector2(230, 34)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.8, 1)
+theme_override_colors/font_outline_color = Color(0.18, 0.09, 0.03, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 13
+text = "Connect MetaMask"
 
 [node name="ShopScroll" type="ScrollContainer" parent="ShopModal/StoneFrame/StoneMargin/WoodBoard/Margin/VBox"]
 layout_mode = 2
@@ -418,9 +514,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -185.0
-offset_top = -342.0
+offset_top = -348.0
 offset_right = 185.0
-offset_bottom = -276.0
+offset_bottom = -284.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -450,9 +546,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = 325.0
-offset_top = -340.0
+offset_top = -346.0
 offset_right = 480.0
-offset_bottom = -254.0
+offset_bottom = -260.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2

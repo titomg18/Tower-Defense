@@ -193,12 +193,19 @@ var equipped_skins: Dictionary = {
 }
 var _skin_pack_v2_bonus: bool = true
 var _confirm_reset: bool = false
+var _last_web3_active: bool = false
 
 @onready var archer_decor: TextureRect = $DecorLayer/ArcherDecor
 @onready var cannon_decor: TextureRect = $DecorLayer/CannonDecor
 
 @onready var settings_button: Button = $SettingsButton
 @onready var record_value_label: Label = $RecordBoard/Margin/VBox/RecordValueLabel
+
+@onready var wallet_panel: PanelContainer = $WalletPanel
+@onready var wallet_status_label: Label = $WalletPanel/Margin/VBox/WalletStatusLabel
+@onready var connect_wallet_button: Button = $WalletPanel/Margin/VBox/WalletButtonsRow/ConnectWalletButton
+@onready var disconnect_wallet_button: Button = $WalletPanel/Margin/VBox/WalletButtonsRow/DisconnectWalletButton
+@onready var wallet_claim_button: Button = $WalletPanel/Margin/VBox/WalletClaimButton
 
 @onready var play_button: Button = $MenuButtons/PlayButton
 @onready var shop_button: Button = $MenuButtons/ShopButton
@@ -213,6 +220,8 @@ var _confirm_reset: bool = false
 @onready var cannon_tab: Button = $ShopModal/StoneFrame/StoneMargin/WoodBoard/Margin/VBox/CategoryTabs/CannonTab
 @onready var tesla_tab: Button = $ShopModal/StoneFrame/StoneMargin/WoodBoard/Margin/VBox/CategoryTabs/TeslaTab
 @onready var owned_tab: Button = $ShopModal/StoneFrame/StoneMargin/WoodBoard/Margin/VBox/CategoryTabs/OwnedTab
+@onready var web3_shop_label: Label = $ShopModal/StoneFrame/StoneMargin/WoodBoard/Margin/VBox/Web3ShopBar/Web3ShopLabel
+@onready var web3_action_button: Button = $ShopModal/StoneFrame/StoneMargin/WoodBoard/Margin/VBox/Web3ShopBar/Web3ActionButton
 @onready var shop_scroll: ScrollContainer = $ShopModal/StoneFrame/StoneMargin/WoodBoard/Margin/VBox/ShopScroll
 @onready var skins_grid: GridContainer = $ShopModal/StoneFrame/StoneMargin/WoodBoard/Margin/VBox/ShopScroll/GridCenter/SkinsGrid
 @onready var back_shop_button: Button = $ShopModal/StoneFrame/StoneMargin/WoodBoard/Margin/VBox/FooterRow/BackShopButton
@@ -247,6 +256,19 @@ func _ready() -> void:
 	cannon_tab.pressed.connect(_on_category_selected.bind("cannon"))
 	tesla_tab.pressed.connect(_on_category_selected.bind("tesla"))
 	owned_tab.pressed.connect(_on_category_selected.bind("owned"))
+
+	connect_wallet_button.pressed.connect(_on_connect_wallet_pressed)
+	disconnect_wallet_button.pressed.connect(_on_disconnect_wallet_pressed)
+	wallet_claim_button.pressed.connect(_on_web3_action_pressed)
+	web3_action_button.pressed.connect(_on_web3_action_pressed)
+
+	var w3 := _web3()
+	_last_web3_active = _is_web3_active()
+	if w3 != null:
+		w3.state_changed.connect(_on_web3_state_changed)
+		w3.profile_synced.connect(_on_web3_profile_synced)
+		w3.tx_finished.connect(_on_web3_tx_finished)
+		w3.call_deferred("check_bridge_status")
 
 	back_shop_button.pressed.connect(func() -> void:
 		_play_click()
@@ -287,18 +309,135 @@ func _ready() -> void:
 	_refresh_menu_ui()
 
 
+func _web3() -> Node:
+	return get_node_or_null("/root/Web3Manager")
+
+
+func _is_web3_active() -> bool:
+	var w3 := _web3()
+	return w3 != null and w3.is_onchain_mode()
+
+
+func _active_coins() -> int:
+	var w3 := _web3()
+	if _is_web3_active():
+		return int(w3.onchain_coins)
+	return shop_coins
+
+
+func _active_gems() -> int:
+	var w3 := _web3()
+	if _is_web3_active():
+		return int(w3.onchain_gems)
+	return shop_gems
+
+
+func _active_owned_skins() -> Array[String]:
+	var w3 := _web3()
+	if _is_web3_active():
+		return w3.onchain_owned_skins
+	return owned_skins
+
+
 func _refresh_menu_ui() -> void:
 	record_value_label.text = "WAVE %d" % highest_wave
-	shop_coins_label.text = _format_number(shop_coins)
-	shop_gems_label.text = _format_number(shop_gems)
+	shop_coins_label.text = _format_number(_active_coins())
+	shop_gems_label.text = _format_number(_active_gems())
 
+	_refresh_web3_ui()
 	_update_decor_skins()
 	_refresh_category_tabs()
 	_rebuild_category_cards()
 	_refresh_owned_summary()
 
 
+func _refresh_web3_ui() -> void:
+	var w3 := _web3()
+	if w3 == null:
+		wallet_panel.visible = false
+		return
+
+	wallet_panel.visible = true
+	var busy: bool = w3.is_tx_busy()
+
+	if w3.wallet_connected and w3.wallet_address != "":
+		var addr_txt: String = w3.short_address()
+		disconnect_wallet_button.visible = true
+		disconnect_wallet_button.disabled = busy
+		connect_wallet_button.text = "Buka Companion"
+		connect_wallet_button.disabled = false
+
+		if not w3.contracts_deployed:
+			wallet_status_label.text = "%s\nKontrak Sepolia belum di-deploy!" % addr_txt
+			wallet_claim_button.visible = true
+			wallet_claim_button.text = "Deploy Kontrak Sepolia"
+			wallet_claim_button.disabled = false
+			web3_shop_label.text = "Sepolia (%s) • Kontrak belum di-deploy" % addr_txt
+			web3_action_button.text = "Deploy Kontrak Sepolia"
+			web3_action_button.disabled = false
+		else:
+			var status_line := "%s • %s ETH" % [addr_txt, w3.eth_balance]
+			if busy:
+				status_line += "\n%s" % w3.last_status_message
+			elif w3.has_pending_reward():
+				status_line += "\nReward siap klaim: +%d FTC, +%d FTG" % [w3.pending_claim_coins, w3.pending_claim_gems]
+			elif not w3.has_claimed_starter:
+				status_line += "\nStarter Pack siap diklaim!"
+			else:
+				status_line += "\nFTC: %d | FTG: %d" % [w3.onchain_coins, w3.onchain_gems]
+			wallet_status_label.text = status_line
+
+			if busy:
+				wallet_claim_button.visible = true
+				wallet_claim_button.text = "Proses MetaMask..."
+				wallet_claim_button.disabled = true
+				web3_shop_label.text = "Sepolia • %s" % w3.last_status_message
+				web3_action_button.text = "Lihat di Browser"
+				web3_action_button.disabled = false
+			elif w3.has_pending_reward():
+				wallet_claim_button.visible = true
+				wallet_claim_button.text = "Klaim Reward (+%d FTC, +%d FTG)" % [mini(w3.pending_claim_coins, 500), mini(w3.pending_claim_gems, 150)]
+				wallet_claim_button.disabled = false
+				web3_shop_label.text = "Sepolia (%s) • %d FTC | %d FTG | Reward siap klaim!" % [addr_txt, w3.onchain_coins, w3.onchain_gems]
+				web3_action_button.text = "Klaim Reward Wave"
+				web3_action_button.disabled = false
+			elif not w3.has_claimed_starter:
+				wallet_claim_button.visible = true
+				wallet_claim_button.text = "Klaim Starter (+250 FTC, +50 FTG)"
+				wallet_claim_button.disabled = false
+				web3_shop_label.text = "Sepolia (%s) • Klaim modal awal gratis on-chain!" % addr_txt
+				web3_action_button.text = "Klaim Starter (+250/+50)"
+				web3_action_button.disabled = false
+			else:
+				wallet_claim_button.visible = false
+				web3_shop_label.text = "Sepolia (%s) • %s ETH • Mode NFT Aktif" % [addr_txt, w3.eth_balance]
+				web3_action_button.text = "Refresh Saldo Sepolia"
+				web3_action_button.disabled = false
+	else:
+		disconnect_wallet_button.visible = false
+		wallet_claim_button.visible = false
+		connect_wallet_button.disabled = false
+
+		if w3.is_waiting_connect:
+			wallet_status_label.text = "Menunggu MetaMask di browser..."
+			connect_wallet_button.text = "Buka MetaMask..."
+			web3_shop_label.text = "Menunggu konfirmasi koneksi MetaMask di browser..."
+			web3_action_button.text = "Buka Browser Companion"
+		elif not w3.bridge_online:
+			wallet_status_label.text = "Mode Lokal • Bridge belum aktif\n(Jalankan start-web3-bridge.bat)"
+			connect_wallet_button.text = "Connect MetaMask"
+			web3_shop_label.text = "Mode Lokal • Jalankan start-web3-bridge.bat untuk MetaMask Sepolia"
+			web3_action_button.text = "Connect MetaMask"
+		else:
+			wallet_status_label.text = "Bridge siap (Sepolia)\nKlik Connect untuk pakai MetaMask"
+			connect_wallet_button.text = "Connect MetaMask"
+			web3_shop_label.text = "Mode Lokal • Bridge Web3 siap dihubungkan ke MetaMask Sepolia"
+			web3_action_button.text = "Connect MetaMask"
+		web3_action_button.disabled = false
+
+
 func _refresh_category_tabs() -> void:
+	var active_owned := _active_owned_skins()
 	var tab_buttons := {
 		"archer": archer_tab,
 		"ice": ice_tab,
@@ -309,7 +448,7 @@ func _refresh_category_tabs() -> void:
 	for cat in CATEGORY_ORDER:
 		var btn: Button = tab_buttons[cat]
 		if cat == "owned":
-			var owned_total: int = TOWER_ORDER.size() + owned_skins.size()
+			var owned_total: int = TOWER_ORDER.size() + active_owned.size()
 			var catalog_total: int = TOWER_ORDER.size() + SKIN_CATALOG.size()
 			btn.text = "%s (%d/%d)" % [CATEGORY_LABELS[cat], owned_total, catalog_total]
 		else:
@@ -328,21 +467,23 @@ func _refresh_category_tabs() -> void:
 
 
 func _count_category_owned(cat: String) -> Dictionary:
+	var active_owned := _active_owned_skins()
 	var total: int = 0
 	var owned: int = 0
 	for skin in SKIN_CATALOG:
 		if String(skin["tower_type"]) == cat:
 			total += 1
-			if owned_skins.has(String(skin["id"])):
+			if active_owned.has(String(skin["id"])):
 				owned += 1
 	return {"owned": owned, "total": total}
 
 
 func _refresh_owned_summary() -> void:
+	var active_owned := _active_owned_skins()
 	if active_shop_category == "owned":
-		var owned_total: int = TOWER_ORDER.size() + owned_skins.size()
+		var owned_total: int = TOWER_ORDER.size() + active_owned.size()
 		var catalog_total: int = TOWER_ORDER.size() + SKIN_CATALOG.size()
-		owned_summary_label.text = "Koleksi: %d/%d (4 Standar + %d Skin)" % [owned_total, catalog_total, owned_skins.size()]
+		owned_summary_label.text = "Koleksi: %d/%d (4 Standar + %d Skin)" % [owned_total, catalog_total, active_owned.size()]
 		return
 
 	var stats := _count_category_owned(active_shop_category)
@@ -356,6 +497,7 @@ func _refresh_owned_summary() -> void:
 
 
 func _rebuild_category_cards() -> void:
+	var active_owned := _active_owned_skins()
 	for child in skins_grid.get_children():
 		skins_grid.remove_child(child)
 		child.queue_free()
@@ -363,20 +505,20 @@ func _rebuild_category_cards() -> void:
 	if active_shop_category == "owned":
 		skins_grid.columns = 4
 		skins_grid.add_theme_constant_override("h_separation", 14)
-		skins_grid.add_theme_constant_override("v_separation", 14)
-		var card_sz := Vector2(188, 198)
+		skins_grid.add_theme_constant_override("v_separation", 12)
+		var card_sz := Vector2(188, 190)
 		for tower_type in TOWER_ORDER:
 			var std_card := _create_standard_card(tower_type, card_sz)
 			skins_grid.add_child(std_card)
 			for skin in SKIN_CATALOG:
-				if String(skin["tower_type"]) == tower_type and owned_skins.has(String(skin["id"])):
+				if String(skin["tower_type"]) == tower_type and active_owned.has(String(skin["id"])):
 					var owned_card := _create_skin_card(skin, true, card_sz)
 					skins_grid.add_child(owned_card)
 	else:
 		skins_grid.columns = 2
 		skins_grid.add_theme_constant_override("h_separation", 22)
-		skins_grid.add_theme_constant_override("v_separation", 14)
-		var shop_sz := Vector2(252, 196)
+		skins_grid.add_theme_constant_override("v_separation", 12)
+		var shop_sz := Vector2(252, 188)
 		for skin in SKIN_CATALOG:
 			if String(skin["tower_type"]) == active_shop_category:
 				var card := _create_skin_card(skin, false, shop_sz)
@@ -467,7 +609,8 @@ func _create_skin_card(skin: Dictionary, show_tower_badge: bool, card_size: Vect
 	var skin_name: String = String(skin["name"])
 	var name_col: Color = skin.get("name_color", Color(0.98, 0.9, 0.72))
 
-	var is_owned: bool = owned_skins.has(skin_id)
+	var active_owned := _active_owned_skins()
+	var is_owned: bool = active_owned.has(skin_id)
 	var is_equipped: bool = String(equipped_skins.get(tower_type, "")) == skin_id
 
 	var card := PanelContainer.new()
@@ -506,7 +649,7 @@ func _create_skin_card(skin: Dictionary, show_tower_badge: bool, card_size: Vect
 	vbox.add_child(name_lbl)
 
 	var preview := TextureRect.new()
-	preview.custom_minimum_size = Vector2(94, 94) if show_tower_badge else Vector2(108, 108)
+	preview.custom_minimum_size = Vector2(92, 92) if show_tower_badge else Vector2(104, 104)
 	preview.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	preview.texture = skin["texture"] as Texture2D
 	preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -541,8 +684,12 @@ func _create_skin_card(skin: Dictionary, show_tower_badge: bool, card_size: Vect
 		status_lbl.add_theme_color_override("font_color", Color(1.0, 0.97, 0.88))
 		_style_wood_button(buy_btn, Color(0.20, 0.58, 0.30), Color(0.08, 0.25, 0.12), 3, 10)
 	else:
-		var can_afford: bool = (shop_coins >= price) if currency == "coins" else (shop_gems >= price)
-		status_lbl.text = "BELI"
+		var avail_coins: int = _active_coins()
+		var avail_gems: int = _active_gems()
+		var can_afford: bool = (avail_coins >= price) if currency == "coins" else (avail_gems >= price)
+		var w3 := _web3()
+		var tx_busy: bool = w3 != null and w3.is_tx_busy()
+		status_lbl.text = "MINT" if _is_web3_active() else "BELI"
 		status_lbl.add_theme_color_override("font_color", Color(1.0, 0.97, 0.88))
 
 		var curr_icon := TextureRect.new()
@@ -562,8 +709,8 @@ func _create_skin_card(skin: Dictionary, show_tower_badge: bool, card_size: Vect
 		price_lbl.add_theme_font_size_override("font_size", 17)
 		center_row.add_child(price_lbl)
 
-		buy_btn.disabled = not can_afford
-		if can_afford:
+		buy_btn.disabled = (not can_afford) or tx_busy
+		if can_afford and not tx_busy:
 			buy_btn.modulate = Color.WHITE
 			_style_wood_button(buy_btn, Color(0.84, 0.41, 0.14), Color(0.28, 0.11, 0.03), 3, 10)
 		else:
@@ -577,7 +724,7 @@ func _on_standard_skin_selected(tower_type: String) -> void:
 	_play_click()
 	if String(equipped_skins.get(tower_type, "")) != "":
 		equipped_skins[tower_type] = ""
-		_save_data()
+		_save_equipped_for_active_mode()
 		_refresh_menu_ui()
 
 
@@ -623,19 +770,31 @@ func _on_skin_action_pressed(skin_id: String) -> void:
 		return
 
 	var tower_type: String = String(skin["tower_type"])
+	var active_owned := _active_owned_skins()
 
-	if owned_skins.has(skin_id):
+	if active_owned.has(skin_id):
 		if String(equipped_skins.get(tower_type, "")) == skin_id:
 			equipped_skins[tower_type] = ""
 		else:
 			equipped_skins[tower_type] = skin_id
-		_save_data()
+		_save_equipped_for_active_mode()
 		_play_click()
 		_refresh_menu_ui()
 		return
 
 	var currency: String = String(skin["currency"])
 	var price: int = int(skin["price"])
+
+	if _is_web3_active():
+		var w3 := _web3()
+		if w3.is_tx_busy():
+			return
+		var can_afford_w3: bool = (w3.onchain_coins >= price) if currency == "coins" else (w3.onchain_gems >= price)
+		if not can_afford_w3:
+			return
+		_play_click()
+		await w3.request_buy_skin(skin_id)
+		return
 
 	if currency == "coins":
 		if shop_coins < price:
@@ -650,6 +809,87 @@ func _on_skin_action_pressed(skin_id: String) -> void:
 	equipped_skins[tower_type] = skin_id
 	_save_data()
 	_play_upgrade()
+	_refresh_menu_ui()
+
+
+func _on_connect_wallet_pressed() -> void:
+	_play_click()
+	var w3 := _web3()
+	if w3 == null:
+		return
+	if w3.wallet_connected and w3.wallet_address != "":
+		w3.open_companion_in_browser()
+	else:
+		await w3.connect_metamask()
+
+
+func _on_disconnect_wallet_pressed() -> void:
+	_play_click()
+	var w3 := _web3()
+	if w3 == null:
+		return
+	await w3.disconnect_wallet()
+	_load_equipped_for_active_mode()
+	_save_equipped_for_active_mode()
+	_refresh_menu_ui()
+
+
+func _on_web3_action_pressed() -> void:
+	_play_click()
+	var w3 := _web3()
+	if w3 == null:
+		return
+	if not w3.wallet_connected or w3.wallet_address == "":
+		if w3.is_waiting_connect:
+			w3.open_companion_in_browser()
+		else:
+			await w3.connect_metamask()
+		return
+	if not w3.contracts_deployed:
+		w3.open_companion_in_browser()
+		return
+	if w3.is_tx_busy():
+		w3.open_companion_in_browser(w3.active_tx_id)
+		return
+	if w3.has_pending_reward():
+		await w3.request_claim_wave_rewards()
+		return
+	if not w3.has_claimed_starter:
+		await w3.request_claim_starter()
+		return
+	await w3.refresh_profile()
+
+
+func _on_web3_state_changed() -> void:
+	var now_active := _is_web3_active()
+	if now_active != _last_web3_active:
+		_last_web3_active = now_active
+		_load_equipped_for_active_mode()
+		_save_equipped_for_active_mode()
+	_refresh_menu_ui()
+
+
+func _on_web3_profile_synced() -> void:
+	_last_web3_active = _is_web3_active()
+	_load_equipped_for_active_mode()
+	_save_equipped_for_active_mode()
+	_refresh_menu_ui()
+
+
+func _on_web3_tx_finished(success: bool, tx_type: String, _msg: String) -> void:
+	if success:
+		_play_upgrade()
+		if tx_type == "buy_skin":
+			var w3 := _web3()
+			if w3 != null:
+				var bought_key := String(w3.last_bought_skin_key)
+				if bought_key != "" and w3.onchain_owned_skins.has(bought_key):
+					var skin := _find_skin_by_id(bought_key)
+					if not skin.is_empty():
+						equipped_skins[String(skin["tower_type"])] = bought_key
+						_save_equipped_for_active_mode()
+	else:
+		_play_click()
 	_refresh_menu_ui()
 
 
@@ -762,11 +1002,14 @@ func _load_data() -> void:
 				if sid != "" and not _find_skin_by_id(sid).is_empty() and not owned_skins.has(sid):
 					owned_skins.append(sid)
 
-		var loaded_eq: Variant = config.get_value("skins", "equipped", {})
+		var eq_key := _get_equipped_save_key()
+		var fallback_eq: Variant = config.get_value("skins", "equipped", {}) if eq_key == "equipped_local" else {}
+		var loaded_eq: Variant = config.get_value("skins", eq_key, fallback_eq)
 		if loaded_eq is Dictionary:
+			var active_owned := _active_owned_skins()
 			for k in equipped_skins.keys():
 				var eq_id: String = String(loaded_eq.get(k, ""))
-				if eq_id != "" and owned_skins.has(eq_id):
+				if eq_id != "" and active_owned.has(eq_id):
 					equipped_skins[k] = eq_id
 				else:
 					equipped_skins[k] = ""
@@ -778,6 +1021,37 @@ func _load_data() -> void:
 			_save_data()
 
 
+func _get_equipped_save_key() -> String:
+	var w3 := _web3()
+	if _is_web3_active() and w3 != null:
+		return "equipped_%s" % String(w3.wallet_address).to_lower()
+	return "equipped_local"
+
+
+func _load_equipped_for_active_mode() -> void:
+	var config := ConfigFile.new()
+	var active_owned := _active_owned_skins()
+	if config.load(SAVE_PATH) == OK:
+		var eq_key := _get_equipped_save_key()
+		var fallback_eq: Variant = config.get_value("skins", "equipped", {}) if eq_key == "equipped_local" else {}
+		var loaded_eq: Variant = config.get_value("skins", eq_key, fallback_eq)
+		for k in equipped_skins.keys():
+			var eq_id: String = String(loaded_eq.get(k, "")) if loaded_eq is Dictionary else ""
+			equipped_skins[k] = eq_id if (eq_id != "" and active_owned.has(eq_id)) else ""
+	else:
+		for k in equipped_skins.keys():
+			equipped_skins[k] = ""
+
+
+func _save_equipped_for_active_mode() -> void:
+	var config := ConfigFile.new()
+	config.load(SAVE_PATH)
+	var eq_copy := equipped_skins.duplicate()
+	config.set_value("skins", _get_equipped_save_key(), eq_copy)
+	config.set_value("skins", "equipped", eq_copy)
+	config.save(SAVE_PATH)
+
+
 func _save_data() -> void:
 	var config := ConfigFile.new()
 	config.load(SAVE_PATH)
@@ -786,7 +1060,9 @@ func _save_data() -> void:
 	config.set_value("wallet", "shop_gems", shop_gems)
 	config.set_value("wallet", "skin_pack_v2_bonus", _skin_pack_v2_bonus)
 	config.set_value("skins", "owned", owned_skins.duplicate())
-	config.set_value("skins", "equipped", equipped_skins.duplicate())
+	var eq_copy := equipped_skins.duplicate()
+	config.set_value("skins", _get_equipped_save_key(), eq_copy)
+	config.set_value("skins", "equipped", eq_copy)
 	config.save(SAVE_PATH)
 
 
@@ -796,9 +1072,14 @@ func _apply_wooden_theme() -> void:
 		_style_wood_button(btn, Color(0.47, 0.29, 0.15), Color(0.20, 0.11, 0.05), 4, 12)
 
 	_style_wood_button(back_shop_button, Color(0.68, 0.18, 0.15), Color(0.24, 0.06, 0.05), 4, 10)
+	_style_wood_button(connect_wallet_button, Color(0.18, 0.50, 0.36), Color(0.95, 0.78, 0.28), 3, 9)
+	_style_wood_button(disconnect_wallet_button, Color(0.58, 0.18, 0.15), Color(0.22, 0.06, 0.04), 3, 9)
+	_style_wood_button(wallet_claim_button, Color(0.76, 0.44, 0.14), Color(1.0, 0.85, 0.30), 3, 9)
+	_style_wood_button(web3_action_button, Color(0.20, 0.48, 0.64), Color(0.95, 0.82, 0.32), 3, 9)
 
 	for panel in [
 		$RecordBoard,
+		$WalletPanel,
 		$HelpModal/Panel,
 		$SettingsModal/Panel,
 	]:

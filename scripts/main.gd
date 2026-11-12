@@ -345,12 +345,20 @@ func _check_wave_completed() -> void:
 	shop_coins += shop_c_gain
 	shop_gems += shop_g_gain
 
+	var w3 := _web3()
+	var web3_connected: bool = (w3 != null and bool(w3.get("wallet_connected")) and w3.has_method("add_pending_reward"))
+	if web3_connected:
+		w3.add_pending_reward(shop_c_gain, shop_g_gain)
+
 	if current_wave > highest_wave:
 		highest_wave = current_wave
 	_save_progress()
 
 	_play_sfx(SFX_WAVE_CLEAR)
-	_show_message("Wave %d selesai! +%d Koin Match | Toko: +%d Koin, +%d Berlian" % [current_wave, bonus, shop_c_gain, shop_g_gain], 3.5)
+	if web3_connected:
+		_show_message("Wave %d selesai! +%d Koin Match | Reward Web3 (+%d FTC, +%d FTG) siap diklaim!" % [current_wave, bonus, shop_c_gain, shop_g_gain], 4.0)
+	else:
+		_show_message("Wave %d selesai! +%d Koin Match | Toko: +%d Koin, +%d Berlian" % [current_wave, bonus, shop_c_gain, shop_g_gain], 3.5)
 
 
 func _trigger_game_over() -> void:
@@ -536,38 +544,49 @@ func _apply_equipped_skin_icons() -> void:
 	tesla_button.icon = TOWER_SCRIPT.get_texture_for("tesla", String(equipped_skins.get("tesla", "")))
 
 
+func _web3() -> Node:
+	return get_node_or_null("/root/Web3Manager")
+
+
 func _load_progress() -> void:
 	var config := ConfigFile.new()
 	var err: Error = config.load(SAVE_PATH)
+	var w3 := _web3()
+	var web3_active: bool = (w3 != null and w3.has_method("is_onchain_mode") and w3.is_onchain_mode())
+
 	if err == OK:
 		highest_wave = int(config.get_value("progress", "highest_wave", 0))
 		shop_coins = int(config.get_value("wallet", "shop_coins", DEFAULT_SHOP_COINS))
 		shop_gems = int(config.get_value("wallet", "shop_gems", DEFAULT_SHOP_GEMS))
+	else:
+		highest_wave = 0
+		shop_coins = DEFAULT_SHOP_COINS
+		shop_gems = DEFAULT_SHOP_GEMS
 
-		var owned: Array[String] = []
+	var owned: Array[String] = []
+	if web3_active:
+		var raw_onchain: Variant = w3.get("onchain_owned_skins")
+		if raw_onchain is Array:
+			for s in raw_onchain:
+				owned.append(String(s))
+	elif err == OK:
 		var raw_owned: Variant = config.get_value("skins", "owned", [])
 		if raw_owned is Array:
 			for s in raw_owned:
 				owned.append(String(s))
 
-		var raw_eq: Variant = config.get_value("skins", "equipped", {})
-		if raw_eq is Dictionary:
-			for k in equipped_skins.keys():
-				var sid: String = String(raw_eq.get(k, ""))
-				if sid != "" and owned.has(sid) and TOWER_SCRIPT.SKIN_TEXTURES.has(sid):
-					equipped_skins[k] = sid
-				else:
-					equipped_skins[k] = ""
-	else:
-		highest_wave = 0
-		shop_coins = DEFAULT_SHOP_COINS
-		shop_gems = DEFAULT_SHOP_GEMS
-		equipped_skins = {
-			"archer": "",
-			"ice": "",
-			"cannon": "",
-			"tesla": "",
-		}
+	var eq_key: String = ("equipped_%s" % String(w3.get("wallet_address")).to_lower()) if web3_active else "equipped_local"
+	var raw_eq: Variant = {}
+	if err == OK:
+		var fallback_eq: Variant = config.get_value("skins", "equipped", {}) if not web3_active else {}
+		raw_eq = config.get_value("skins", eq_key, fallback_eq)
+
+	for k in equipped_skins.keys():
+		var sid: String = String(raw_eq.get(k, "")) if raw_eq is Dictionary else ""
+		if sid != "" and owned.has(sid) and TOWER_SCRIPT.SKIN_TEXTURES.has(sid):
+			equipped_skins[k] = sid
+		else:
+			equipped_skins[k] = ""
 
 
 func _save_progress() -> void:

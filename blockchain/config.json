@@ -1,0 +1,12 @@
+{
+  "networkName": "Ethereum Sepolia",
+  "chainId": 11155111,
+  "chainHex": "0xaa36a7",
+  "rpcUrl": "https://ethereum-sepolia-rpc.publicnode.com",
+  "explorerUrl": "https://sepolia.etherscan.io",
+  "skinsContract": "0x7d3456d6B986Cd70bFdE1732dFE9a248eaF4af18",
+  "coinContract": "0x035C9b77Eb4Db98972145762576922e1Ac191b62",
+  "gemContract": "0xc35E2c53804F99f894Ea03F3354fA4cd6710aF50",
+  "deployerAddress": "0xbCD2ACb2fF34ee07EA73B17bEc8370E5836aE3Cd",
+  "deployTxHash": "0xacc414f469e603f62edb5cc6a51b6293a116bf7c16fd90b0a78549a6c5ec01c0"
+}

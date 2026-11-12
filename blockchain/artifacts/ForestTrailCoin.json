@@ -1,0 +1,355 @@
+{
+  "contractName": "ForestTrailCoin",
+  "sourceFile": "ForestTrailCoin.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_gameHub",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "InsufficientAllowance",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InsufficientFTC",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidAddress",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "OnlyGameHub",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "OnlyOwner",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Approval",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newHub",
+          "type": "address"
+        }
+      ],
+      "name": "GameHubUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Transfer",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "allowance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "approve",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "balanceOf",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "decimals",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "gameHub",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "wholeAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "mint",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "name",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_gameHub",
+          "type": "address"
+        }
+      ],
+      "name": "setGameHub",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "wholeAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "spendFrom",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "symbol",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalSupply",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "transfer",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "transferFrom",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x608034609257601f61081938819003918201601f19168301916001600160401b03831184841017609657808492602094604052833981010312609257516001600160a01b038116908190036092578015608357600180546001600160a01b031990811633179091556002805490911691909117905560405161076e90816100ab8239f35b63e6c4247b60e01b5f5260045ffd5b5f80fd5b634e487b7160e01b5f52604160045260245ffdfe608060405260033611610010575f80fd5b5f3560e01c806306fdde0314610651578063095ea7b3146105d857806318160ddd146105bc57806323b872dd146104b3578063313ce5671461049857806340c10f19146103f75780636aade288146103265780636c8c0367146102a557806370a082311461026d5780638da5cb5b1461024557806395d89b41146101e0578063a9059cbb1461012e578063d1d27cf9146101065763dd62ed3e146100b2575f80fd5b34610102576040366003190112610102576100cb6106d2565b6100d36106e8565b6001600160a01b039182165f908152600460209081526040808320949093168252928352819020549051908152f35b5f80fd5b34610102575f366003190112610102576002546040516001600160a01b039091168152602090f35b34610102576040366003190112610102576101476106d2565b6001600160a01b031660243581156101d157335f5260036020528060405f2054106101c257335f52600360205260405f206101838282546106fe565b9055815f52600360205260405f2061019c82825461070b565b90556040519081525f5160206107195f395f51905f5260203392a3602060405160018152f35b63caec647760e01b5f5260045ffd5b63e6c4247b60e01b5f5260045ffd5b34610102575f3660031901126101025760408051908101906001600160401b038211818310176102315761022d91604052600381526246544360e81b6020820152604051918291826106a8565b0390f35b634e487b7160e01b5f52604160045260245ffd5b34610102575f366003190112610102576001546040516001600160a01b039091168152602090f35b34610102576020366003190112610102576001600160a01b0361028e6106d2565b165f526003602052602060405f2054604051908152f35b34610102576020366003190112610102576102be6106d2565b6001546001600160a01b03163303610317576001600160a01b031680156101d157600280546001600160a01b031916821790557f643920f77b1107d141a3364bbd8cee06ef2223ee217a917b4ed9c1e7b13760435f80a2005b635fc483c560e01b5f5260045ffd5b346101025760403660031901126101025761033f6106d2565b60025460243591906001600160a01b031633036103e857670de0b6b3a7640000820291808304670de0b6b3a764000014901517156103d4576001600160a01b03165f8181526003602052604090205482116101c2575f5160206107195f395f51905f5260205f9383855260038252604085206103bc8282546106fe565b90556103c98186546106fe565b8555604051908152a3005b634e487b7160e01b5f52601160045260245ffd5b631d29583760e11b5f5260045ffd5b34610102576040366003190112610102576104106106d2565b60025460243591906001600160a01b031633036103e8576001600160a01b03169081156101d157670de0b6b3a7640000810290808204670de0b6b3a764000014901517156103d4575f5160206107195f395f51905f526020826104755f94855461070b565b8455848452600382526040842061048d82825461070b565b9055604051908152a3005b34610102575f36600319011261010257602060405160128152f35b34610102576060366003190112610102576104cc6106d2565b6104d46106e8565b6001600160a01b0316906044359082156101d1576001600160a01b03165f8181526004602090815260408083203384529091529020549091906001810161057d575b50815f5260036020528060405f2054106101c25760205f5160206107195f395f51905f5291835f526003825260405f206105518282546106fe565b9055845f526003825260405f2061056982825461070b565b9055604051908152a3602060405160018152f35b8181106105ad578161058e916106fe565b5f83815260046020908152604080832033845290915290205583610516565b6313be252b60e01b5f5260045ffd5b34610102575f3660031901126101025760205f54604051908152f35b34610102576040366003190112610102576105f16106d2565b335f8181526004602090815260408083206001600160a01b03909516808452948252918290206024359081905591519182527f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b92591a3602060405160018152f35b34610102575f3660031901126101025760408051908101906001600160401b038211818310176102315761022d9160405260118152702337b932b9ba102a3930b4b61021b7b4b760791b6020820152604051918291825b602060409281835280519182918282860152018484015e5f828201840152601f01601f1916010190565b600435906001600160a01b038216820361010257565b602435906001600160a01b038216820361010257565b919082039182116103d457565b919082018092116103d45756feddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3efa2646970667358221220af54a8d108e14bac17ced0385c23fe5d55221c69beb5fdf5eb5038db8b258af764736f6c63430008260033",
+  "initCodeBytes": 2073,
+  "deployedBytecodeBytes": 1902
+}
